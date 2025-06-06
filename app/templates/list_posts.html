@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>All Posts</h2>
+
+  {% if posts %}
+    {% for post in posts %}
+      <div style="border-bottom: 1px solid #ccc; padding: 10px 0;">
+        <h3>{{ post.title }}</h3>
+        <p>{{ post.content|nl2br }}</p>
+        <p><strong>Groups:</strong>
+          {% for group in post.groups %}
+            {{ group.name }}{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </p>
+        {% if post.image_filenames %}
+          <div>
+            {% for filename in post.image_filenames.split(',') %}
+              <img src="{{ url_for('static', filename='uploads/' ~ filename) }}" alt="post image" style="max-width: 200px; margin: 5px;"/>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No posts yet.</p>
+  {% endif %}
+{% endblock %}

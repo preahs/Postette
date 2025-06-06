@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Create Post</h2>
+  <form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div>
+      {{ form.title.label }}<br>
+      {{ form.title(size=40) }}
+    </div>
+
+    <div>
+      {{ form.content.label }}<br>
+      {{ form.content(cols=60, rows=10) }}
+    </div>
+
+    <div>
+      {{ form.groups.label }}<br>
+      {% for value, label in form.groups.choices %}
+        <label><input type="checkbox" name="{{ form.groups.name }}" value="{{ value }}"
+          {% if value in form.groups.data %} checked {% endif %}>
+          {{ label }}
+        </label><br>
+      {% endfor %}
+    </div>
+
+    <div>
+      {{ form.images.label }}<br>
+      {{ form.images(multiple=true) }}
+    </div>
+
+    <div>
+      {{ form.submit() }}
+    </div>
+  </form>
+{% endblock %}

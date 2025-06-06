@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verba Newsletter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header {
+      border-bottom: 2px solid #555;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+    }
+    a {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .flash {
+      background: #dff0d8;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      color: #3c763d;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><a href="{{ url_for('main.index') }}">Verba Newsletter</a></h1>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</body>
+</html>
