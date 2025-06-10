@@ -1,1 +1,25 @@
-
+{% extends "base.html" %}
+{% block title %}Newsletter Preview{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h1>Newsletter Preview</h1>
+  {% for post in posts %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h2>{{ post.title }}</h2>
+        <p>{{ post.content|safe }}</p>
+        {% for filename in post.image_filenames.split(',') if filename %}
+          <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" class="img-fluid mb-2">
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <p>No unsent posts to preview.</p>
+  {% endfor %}
+  {% if posts %}
+    <form method="POST" action="{{ url_for('main.send_newsletter') }}">
+      <button type="submit" class="btn btn-primary">Send Newsletter</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

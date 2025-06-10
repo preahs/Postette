@@ -1,36 +1,29 @@
 {% extends "base.html" %}
-
-{% block title %}Home{% endblock %}
-
+{% block title %}All Posts{% endblock %}
 {% block content %}
-<h2>All Posts</h2>
-<a class="btn btn-primary mb-3" href="{{ url_for('main.create_post') }}">Create New Post</a>
-
-{% if posts %}
+<div class="container mt-4">
+  <h1>All Posts</h1>
+  <div class="d-flex mb-3">
+    <a href="{{ url_for('main.create_post') }}" class="btn btn-primary me-2">Create Post</a>
+    <a href="{{ url_for('main.newsletter_preview') }}" class="btn btn-success">Preview Newsletter</a>
+  </div>
   {% for post in posts %}
-    <div class="card mb-4">
+    <div class="card mb-3">
       <div class="card-body">
-        <h4 class="card-title">{{ post.title }}</h4>
-        <p class="card-text">{{ post.content | nl2br }}</p>
-
-        {% if post.image_filenames %}
-          <div class="row">
-            {% for filename in post.image_filenames.split(',') %}
-              <div class="col-md-3 col-sm-4 col-6 mb-2">
-                <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}"
-                     class="img-fluid rounded border"
-                     alt="Post image">
-              </div>
-            {% endfor %}
-          </div>
+        <h2>{{ post.title }}</h2>
+        <p>{{ post.content|safe }}</p>
+        {% for filename in post.image_filenames.split(',') if filename %}
+          <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" class="img-fluid mb-2">
+        {% endfor %}
+        {% if post.sent %}
+          <p><span class="badge bg-success">Sent</span></p>
+        {% else %}
+          <p><span class="badge bg-warning text-dark">Unsent</span></p>
         {% endif %}
-
-        <small class="text-muted d-block mt-2">Posted on {{ post.timestamp.strftime('%B %d, %Y') }}</small>
-        <a href="{{ url_for('main.send_newsletter', post_id=post.id) }}" class="btn btn-success btn-sm mt-2">Send Newsletter</a>
       </div>
     </div>
+  {% else %}
+    <p>No posts yet.</p>
   {% endfor %}
-{% else %}
-  <p>No posts yet. Be the first to <a href="{{ url_for('main.create_post') }}">create one</a>.</p>
-{% endif %}
+</div>
 {% endblock %}

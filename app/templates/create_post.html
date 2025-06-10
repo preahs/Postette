@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Create Post{% endblock %}
-
 {% block content %}
 <div class="container mt-4">
   <h1>Create a New Post</h1>
@@ -19,12 +18,7 @@
 
     <div class="mb-3">
       {{ form.images.label(class="form-label") }}
-      <input type="file" name="images" class="form-control" multiple>
-    </div>
-
-    <div class="mb-3">
-      {{ form.groups.label(class="form-label") }}
-      {{ form.groups(class="form-select") }}
+      {{ form.images(class="form-control", multiple=true) }}
     </div>
 
     <div class="mb-3">
