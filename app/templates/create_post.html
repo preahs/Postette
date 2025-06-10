@@ -19,7 +19,12 @@
 
     <div class="mb-3">
       {{ form.images.label(class="form-label") }}
-      {{ form.images(class="form-control", multiple=true) }}
+      <input type="file" name="images" class="form-control" multiple>
+    </div>
+
+    <div class="mb-3">
+      {{ form.groups.label(class="form-label") }}
+      {{ form.groups(class="form-select") }}
     </div>
 
     <div class="mb-3">

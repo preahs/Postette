@@ -26,6 +26,7 @@
         {% endif %}
 
         <small class="text-muted d-block mt-2">Posted on {{ post.timestamp.strftime('%B %d, %Y') }}</small>
+        <a href="{{ url_for('main.send_newsletter', post_id=post.id) }}" class="btn btn-success btn-sm mt-2">Send Newsletter</a>
       </div>
     </div>
   {% endfor %}
