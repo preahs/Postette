@@ -21,17 +21,19 @@ def create_post():
     if form.validate_on_submit():
         image_filenames = []
 
-        for image in form.images.data:
-            if isinstance(image, FileStorage) and image.filename:
-                filename = secure_filename(image.filename)
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-                image.save(image_path)
-                image_filenames.append(filename)
+        # Safely iterate only if form.images.data is a list
+        if form.images.data:
+            for image in form.images.data:
+                if isinstance(image, FileStorage) and image.filename:
+                    filename = secure_filename(image.filename)
+                    image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                    image.save(image_path)
+                    image_filenames.append(filename)
 
         post = Post(
             title=form.title.data,
             content=form.content.data,
-            image_filenames=",".join(image_filenames)
+            image_filenames=",".join(image_filenames) if image_filenames else ""
         )
 
         db.session.add(post)
@@ -82,4 +84,21 @@ def send_newsletter():
     db.session.commit()
 
     flash("Newsletter sent successfully!", "success")
+    return redirect(url_for('main.index'))
+
+@main.route('/delete/<int:post_id>', methods=['POST'])
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+
+    # Delete image files
+    if post.image_filenames:
+        for filename in post.image_filenames.split(','):
+            if filename.strip():
+                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename.strip())
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+
+    db.session.delete(post)
+    db.session.commit()
+    flash("Post deleted successfully.", "success")
     return redirect(url_for('main.index'))
