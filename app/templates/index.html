@@ -3,11 +3,18 @@
 {% block content %}
 <div class="container mt-4">
   <h1>All Posts</h1>
-  <div class="d-flex mb-3">
-    <a href="{{ url_for('main.create_post') }}" class="btn btn-primary me-2">Create Post</a>
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="{{ url_for('main.create_post') }}" class="btn btn-primary">Create Post</a>
     <a href="{{ url_for('main.newsletter_preview') }}" class="btn btn-success">Preview Newsletter</a>
-    <a href="{{ url_for('main.subscribe') }}" class="btn btn-outline-secondary">Subscribe</a>
+    <a href="{{ url_for('main.subscribe') }}" class="btn btn-secondary">Subscribe</a>
+    <form action="{{ url_for('main.delete_sent_posts') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all sent posts? This cannot be undone.');">
+      {% if csrf_token %}
+        {{ csrf_token() }}
+      {% endif %}
+      <button type="submit" class="btn btn-danger">Delete All Sent</button>
+    </form>
   </div>
+
   {% for post in posts %}
     <div class="card mb-3">
       <div class="card-body">

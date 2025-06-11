@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, flash, url_for
 from werkzeug.utils import secure_filename
 from .models import Post
 from . import db, mail
@@ -8,6 +8,7 @@ from werkzeug.datastructures import FileStorage
 import os
 from .models import Post, Subscriber
 from .forms import PostForm, SubscribeForm
+from app.models import Post
 
 main = Blueprint('main', __name__)
 
@@ -122,3 +123,22 @@ def subscribe():
             flash("Subscribed successfully!", "success")
         return redirect(url_for('main.index'))
     return render_template('subscribe.html', form=form)
+
+@main.route('/delete-sent-posts', methods=['POST'])
+def delete_sent_posts():
+    sent_posts = Post.query.filter_by(sent=True).all()
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+
+    for post in sent_posts:
+        # Delete associated image files
+        if post.image_filenames:
+            for filename in post.image_filenames.split(','):
+                filepath = os.path.join(upload_folder, filename.strip())
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+
+        db.session.delete(post)
+
+    db.session.commit()
+    flash('All sent posts and their images have been deleted.', 'success')
+    return redirect(url_for('main.index'))
