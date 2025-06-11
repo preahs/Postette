@@ -74,11 +74,11 @@ def send_newsletter():
                 image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
 
                 if os.path.exists(image_path):
-                    cid = make_msgid(domain="verba.local")
+                    cid = make_msgid(domain="postette.local")
                     html_body += f'<img src="cid:{cid[1:-1]}" style="max-width: 100%;"><br>'
                     attachments.append((cid[1:-1], image_path))
 
-    html_body += "<p><small>Sent via Verba</small></p>"
+    html_body += "<p><small>Sent via Postette</small></p>"
 
     msg = Message(
         subject="Preah's Newsletter",
