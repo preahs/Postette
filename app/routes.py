@@ -1,14 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, flash, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from werkzeug.utils import secure_filename
-from .models import Post
+from .models import Post, Subscriber
 from . import db, mail
-from .forms import PostForm
+from .forms import PostForm, SubscribeForm
 from flask_mail import Message
 from werkzeug.datastructures import FileStorage
+from email.utils import make_msgid
 import os
-from .models import Post, Subscriber
-from .forms import PostForm, SubscribeForm
-from app.models import Post
 
 main = Blueprint('main', __name__)
 
@@ -24,7 +22,6 @@ def create_post():
     if form.validate_on_submit():
         image_filenames = []
 
-        # Safely iterate only if form.images.data is a list
         if form.images.data:
             for image in form.images.data:
                 if isinstance(image, FileStorage) and image.filename:
@@ -59,28 +56,48 @@ def send_newsletter():
         flash("No new posts to send.", "warning")
         return redirect(url_for('main.index'))
 
-    # You can replace this with DB-driven recipients later
     recipients = [s.email for s in Subscriber.query.all()]
     if not recipients:
         flash("No subscribers found. Cannot send newsletter.", "danger")
         return redirect(url_for('main.index'))
 
-    images_html = ""
+    html_body = "<h1>What's Up?</h1>"
+    attachments = []
+
     for post in posts:
-        images_html += f"<h2>{post.title}</h2><p>{post.content.replace(chr(10), '<br>')}</p>"
-        for filename in post.image_filenames.split(','):
-            if filename.strip():
-                images_html += f'<p><img src="{request.url_root}static/uploads/{filename.strip()}" style="max-width: 100%;"></p>'
+        html_body += f"<h2>{post.title}</h2>"
+        html_body += f"<p>{post.content.replace(chr(10), '<br>')}</p>"
+
+        if post.image_filenames:
+            for filename in post.image_filenames.split(','):
+                filename = filename.strip()
+                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+
+                if os.path.exists(image_path):
+                    cid = make_msgid(domain="verba.local")
+                    html_body += f'<img src="cid:{cid[1:-1]}" style="max-width: 100%;"><br>'
+                    attachments.append((cid[1:-1], image_path))
+
+    html_body += "<p><small>Sent via Verba</small></p>"
 
     msg = Message(
         subject="Preah's Newsletter",
         sender=current_app.config['MAIL_DEFAULT_SENDER'],
         recipients=recipients,
-        html=f"""
-            {images_html}
-            <p><small>Sent via Verba</small></p>
-        """
+        html=html_body
     )
+
+    for cid, path in attachments:
+        with open(path, 'rb') as img:
+            msg.attach(
+                filename=os.path.basename(path),
+                content_type="image/jpeg",
+                data=img.read(),
+                headers={
+                    'Content-ID': f'<{cid}>',
+                    'Content-Disposition': 'inline'
+                }
+            )
 
     mail.send(msg)
 
