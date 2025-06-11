@@ -18,16 +18,19 @@
   {% for post in posts %}
     <div class="card mb-3">
       <div class="card-body">
-        <h2>{{ post.title }}</h2>
-        <p>{{ post.content|safe }}</p>
-        {% for filename in post.image_filenames.split(',') if filename %}
-          <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" class="img-fluid mb-2">
-        {% endfor %}
         {% if post.sent %}
           <p><span class="badge bg-success">Sent</span></p>
         {% else %}
           <p><span class="badge bg-warning text-dark">Unsent</span></p>
         {% endif %}
+
+        <h2>{{ post.title }}</h2>
+        <p>{{ post.content|safe }}</p>
+        <div class="mb-3">
+          {% for filename in post.image_filenames.split(',') if filename %}
+            <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" class="img-fluid mb-2 d-block">
+          {% endfor %}
+        </div>
 
         <!-- Delete Button -->
         <form action="{{ url_for('main.delete_post', post_id=post.id) }}" method="POST" style="display: inline;">
