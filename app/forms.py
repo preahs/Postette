@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SubmitField, SelectMultipleField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, Email
 from flask_wtf.file import MultipleFileField, FileAllowed
 from wtforms.widgets import ListWidget, CheckboxInput
 
@@ -15,3 +15,7 @@ class PostForm(FlaskForm):
         FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'bmp'], 'Images only!')
     ])
     submit = SubmitField('Create Post')
+
+class SubscribeForm(FlaskForm):
+    email = StringField('Your Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Subscribe')

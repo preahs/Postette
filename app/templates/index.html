@@ -6,6 +6,7 @@
   <div class="d-flex mb-3">
     <a href="{{ url_for('main.create_post') }}" class="btn btn-primary me-2">Create Post</a>
     <a href="{{ url_for('main.newsletter_preview') }}" class="btn btn-success">Preview Newsletter</a>
+    <a href="{{ url_for('main.subscribe') }}" class="btn btn-outline-secondary">Subscribe</a>
   </div>
   {% for post in posts %}
     <div class="card mb-3">

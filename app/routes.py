@@ -6,6 +6,8 @@ from .forms import PostForm
 from flask_mail import Message
 from werkzeug.datastructures import FileStorage
 import os
+from .models import Post, Subscriber
+from .forms import PostForm, SubscribeForm
 
 main = Blueprint('main', __name__)
 
@@ -57,7 +59,10 @@ def send_newsletter():
         return redirect(url_for('main.index'))
 
     # You can replace this with DB-driven recipients later
-    recipients = ['recipient1@example.com', 'recipient2@example.com']
+    recipients = [s.email for s in Subscriber.query.all()]
+    if not recipients:
+        flash("No subscribers found. Cannot send newsletter.", "danger")
+        return redirect(url_for('main.index'))
 
     images_html = ""
     for post in posts:
@@ -67,11 +72,10 @@ def send_newsletter():
                 images_html += f'<p><img src="{request.url_root}static/uploads/{filename.strip()}" style="max-width: 100%;"></p>'
 
     msg = Message(
-        subject="Your Newsletter",
+        subject="Preah's Newsletter",
         sender=current_app.config['MAIL_DEFAULT_SENDER'],
         recipients=recipients,
         html=f"""
-            <h1>Newsletter</h1>
             {images_html}
             <p><small>Sent via Verba</small></p>
         """
@@ -102,3 +106,19 @@ def delete_post(post_id):
     db.session.commit()
     flash("Post deleted successfully.", "success")
     return redirect(url_for('main.index'))
+
+@main.route('/subscribe', methods=['GET', 'POST'])
+def subscribe():
+    form = SubscribeForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        existing = Subscriber.query.filter_by(email=email).first()
+        if existing:
+            flash("You're already subscribed!", "info")
+        else:
+            new_subscriber = Subscriber(email=email)
+            db.session.add(new_subscriber)
+            db.session.commit()
+            flash("Subscribed successfully!", "success")
+        return redirect(url_for('main.index'))
+    return render_template('subscribe.html', form=form)
