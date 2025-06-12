@@ -1,20 +1,15 @@
 import os
 import re
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_mail import Mail
-from flask_migrate import Migrate
+from flask import Flask, request, redirect, url_for
 from jinja2 import pass_eval_context
 from markupsafe import Markup, escape
 from dotenv import load_dotenv
+from itsdangerous import URLSafeTimedSerializer
+from .models import User
+from .extensions import db, mail, migrate, login_manager
 
 # Load environment variables from .env
 load_dotenv()
-
-# Initialize extensions
-db = SQLAlchemy()
-mail = Mail()
-migrate = Migrate()
 
 _paragraph_re = re.compile(r'(?:\r\n|\r|\n){2,}')
 
@@ -40,9 +35,18 @@ def create_app():
     mail.init_app(app)
     migrate.init_app(app, db)
 
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    app.login_manager = login_manager
+
+    # Token serializer for invite-only links
+    app.token_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
     # Register blueprints
     from .routes import main
+    from .auth import auth as auth_blueprint
     app.register_blueprint(main)
+    app.register_blueprint(auth_blueprint)
 
     # Custom template filter
     @app.template_filter()
@@ -55,5 +59,25 @@ def create_app():
         if eval_ctx.autoescape:
             result = Markup(result)
         return result
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+    
+    # Global login requirement
+    @app.before_request
+    def redirect_to_setup():
+        from .models import User
+        if not User.query.first() and request.endpoint != 'auth.setup':
+            return redirect(url_for('auth.setup'))
+    def require_login():
+        from flask_login import current_user
+        # List of allowed endpoints that do NOT require login
+        allowed_routes = ['auth.login', 'auth.setup', 'static', 'main.subscribe_with_token']
+        if (
+            not current_user.is_authenticated and 
+            request.endpoint not in allowed_routes
+        ):
+            return redirect(url_for('auth.login'))
 
     return app
