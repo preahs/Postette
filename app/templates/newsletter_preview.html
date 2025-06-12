@@ -7,6 +7,9 @@
     <div class="card mb-3">
       <div class="card-body">
         <h2>{{ post.title }}</h2>
+        <p class="text-muted">
+          <small>Posted on {{ format_datetime(post.timestamp) }}</small>
+        </p>
         <p>{{ post.content|safe }}</p>
         {% for filename in post.image_filenames.split(',') if filename %}
           <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" class="img-fluid mb-2">

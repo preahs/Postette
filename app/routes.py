@@ -6,6 +6,7 @@ from .forms import PostForm, SubscribeForm
 from flask_mail import Message
 from werkzeug.datastructures import FileStorage
 from email.utils import make_msgid
+from .utils import format_datetime
 import os
 from flask_login import login_required
 
@@ -66,11 +67,12 @@ def send_newsletter():
         flash("No subscribers found. Cannot send newsletter.", "danger")
         return redirect(url_for('main.index'))
 
-    html_body = "<h3>This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</h3>"
+    html_body = "<p>This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</p>"
     attachments = []
 
     for post in posts:
         html_body += f"<h2>{post.title}</h2>"
+        html_body += f"<p style='color: #666; font-size: 0.9em;'>Posted on {format_datetime(post.timestamp)}</p>"
         html_body += f"<p>{post.content.replace(chr(10), '<br>')}</p>"
 
         if post.image_filenames:

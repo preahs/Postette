@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from itsdangerous import URLSafeTimedSerializer
 from .models import User
 from .extensions import db, mail, migrate, login_manager
+from .utils import format_datetime
 
 # Load environment variables from .env
 load_dotenv()
@@ -52,6 +53,11 @@ def create_app():
     from .auth import auth as auth_blueprint
     app.register_blueprint(main)
     app.register_blueprint(auth_blueprint)
+
+    # Add format_datetime to template context
+    @app.context_processor
+    def utility_processor():
+        return dict(format_datetime=format_datetime)
 
     # Custom template filter
     @app.template_filter()

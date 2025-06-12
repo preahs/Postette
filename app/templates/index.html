@@ -31,6 +31,9 @@
         {% endif %}
 
         <h2>{{ post.title }}</h2>
+        <p class="text-muted">
+          <small>Posted on {{ format_datetime(post.timestamp) }}</small>
+        </p>
         <p>{{ post.content|safe }}</p>
         {% if post.image_filenames %}
           <div class="post-images {% if post.image_filenames.count(',') == 0 %}single{% endif %}">
