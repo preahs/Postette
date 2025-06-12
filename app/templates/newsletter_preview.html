@@ -3,26 +3,81 @@
 {% block content %}
 <div class="container mt-4">
   <h1>Newsletter Preview</h1>
-  {% for post in posts %}
-    <div class="card mb-3">
-      <div class="card-body">
-        <h2>{{ post.title }}</h2>
-        <p class="text-muted">
-          <small>Posted on {{ format_datetime(post.timestamp) }}</small>
-        </p>
-        <p>{{ post.content|safe }}</p>
-        {% for filename in post.image_filenames.split(',') if filename %}
-          <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" class="img-fluid mb-2">
-        {% endfor %}
-      </div>
+  <div class="email-preview">
+    <div class="email-header mb-4">
+      <h2>Preah's Newsletter</h2>
+      <p class="text-muted">This is how your newsletter will appear in subscribers' inboxes</p>
     </div>
-  {% else %}
-    <p>No unsent posts to preview.</p>
-  {% endfor %}
-  {% if posts %}
-    <form method="POST" action="{{ url_for('main.send_newsletter') }}">
-      <button type="submit" class="btn btn-primary">Send Newsletter</button>
-    </form>
-  {% endif %}
+
+    <div class="email-content">
+      <p>This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</p>
+
+      {% for post in posts %}
+        <div class="email-post mb-4">
+          <h2>{{ post.title }}</h2>
+          <p style="color: #666; font-size: 0.9em;">Posted on {{ format_datetime(post.timestamp) }}</p>
+          <div class="post-content">
+            {{ post.content|safe }}
+          </div>
+          {% if post.image_filenames %}
+            {% for filename in post.image_filenames.split(',') if filename %}
+              <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" 
+                   style="max-width: 100%; margin: 1rem 0;"
+                   alt="Post image">
+            {% endfor %}
+          {% endif %}
+        </div>
+      {% else %}
+        <p>No unsent posts to preview.</p>
+      {% endfor %}
+
+      <p><small>Sent via Postette</small></p>
+    </div>
+
+    {% if posts %}
+      <div class="mt-4">
+        <form method="POST" action="{{ url_for('main.send_newsletter') }}">
+          <button type="submit" class="btn btn-primary">Send Newsletter</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
 </div>
+
+<style>
+.email-preview {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.email-header {
+  border-bottom: 2px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.email-post {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.email-post:last-child {
+  border-bottom: none;
+}
+
+.post-content {
+  line-height: 1.6;
+  margin: 1rem 0;
+}
+
+.post-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+}
+</style>
 {% endblock %}
