@@ -20,6 +20,11 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')  # fallback to 'dev'
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'connect_args': {'timeout': 30}  # Increase timeout for SQLite
+    }
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
 
     # Mail settings

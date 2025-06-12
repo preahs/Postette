@@ -16,7 +16,7 @@
           <form action="{{ url_for('auth.logout') }}" method="post" class="d-inline">
             <button type="submit" class="btn btn-danger">Logout</button>
           </form>
-        {% else %}
+        {% elif request.endpoint != 'auth.setup' %}
           <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
         {% endif %}
       </div>

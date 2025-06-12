@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required
 from .models import User
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from . import db
+from .forms import SetupForm
+import logging
 
 auth = Blueprint('auth', __name__)
 
@@ -33,16 +35,24 @@ def setup():
         flash("Setup is already completed. Please log in.", "info")
         return redirect(url_for('auth.login'))
 
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        password_hash = generate_password_hash(password)
+    form = SetupForm()
+    if form.validate_on_submit():
+        try:
+            user = User(
+                username=form.username.data,
+                password_hash=generate_password_hash(form.password.data),
+                is_admin=True
+            )
+            db.session.add(user)
+            db.session.commit()
+            flash("User created successfully. Please log in.", "success")
+            return redirect(url_for('auth.login'))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error creating user: {str(e)}")
+            current_app.logger.exception("Full traceback:")
+            flash(f"An error occurred while creating the user: {str(e)}", "danger")
+            return render_template('setup.html', form=form)
 
-        user = User(username=username, password_hash=password_hash, is_admin=True)
-        db.session.add(user)
-        db.session.commit()
-        flash("Admin user created successfully. Please log in.", "success")
-        return redirect(url_for('auth.login'))
-
-    return render_template('setup.html')
+    return render_template('setup.html', form=form)
 
