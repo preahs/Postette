@@ -62,15 +62,18 @@ def send_newsletter():
         flash("No new posts to send.", "warning")
         return redirect(url_for('main.index'))
 
-    recipients = [s.email for s in Subscriber.query.all()]
-    if not recipients:
+    subscribers = Subscriber.query.all()
+    if not subscribers:
         flash("No subscribers found. Cannot send newsletter.", "danger")
         return redirect(url_for('main.index'))
 
     html_body = "<p>This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</p>"
     attachments = []
 
-    for post in posts:
+    for i, post in enumerate(posts):
+        if i > 0:  # Add divider before all posts except the first one
+            html_body += '<hr style="border: none; border-top: 2px solid #eee; margin: 2em 0;">'
+            
         html_body += f"<h2>{post.title}</h2>"
         html_body += f"<p style='color: #666; font-size: 0.9em;'>Posted on {format_datetime(post.timestamp)}</p>"
         html_body += f"<p>{post.content.replace(chr(10), '<br>')}</p>"
@@ -87,26 +90,31 @@ def send_newsletter():
 
     html_body += "<p><small>Sent via Postette</small></p>"
 
-    msg = Message(
-        subject="Preah's Newsletter",
-        sender=current_app.config['MAIL_DEFAULT_SENDER'],
-        recipients=recipients,
-        html=html_body
-    )
+    # Send individual emails to each subscriber with their unique unsubscribe link
+    for subscriber in subscribers:
+        unsubscribe_url = url_for('main.unsubscribe', token=subscriber.unsubscribe_token, _external=True)
+        subscriber_html = html_body + f'<p style="font-size: 0.8em; color: #666; margin-top: 2em; border-top: 1px solid #eee; padding-top: 1em;">To unsubscribe from this newsletter, <a href="{unsubscribe_url}">click here</a>.</p>'
+        
+        msg = Message(
+            subject="Preah's Newsletter",
+            sender=current_app.config['MAIL_DEFAULT_SENDER'],
+            recipients=[subscriber.email],
+            html=subscriber_html
+        )
 
-    for cid, path in attachments:
-        with open(path, 'rb') as img:
-            msg.attach(
-                filename=os.path.basename(path),
-                content_type="image/jpeg",
-                data=img.read(),
-                headers={
-                    'Content-ID': f'<{cid}>',
-                    'Content-Disposition': 'inline'
-                }
-            )
+        for cid, path in attachments:
+            with open(path, 'rb') as img:
+                msg.attach(
+                    filename=os.path.basename(path),
+                    content_type="image/jpeg",
+                    data=img.read(),
+                    headers={
+                        'Content-ID': f'<{cid}>',
+                        'Content-Disposition': 'inline'
+                    }
+                )
 
-    mail.send(msg)
+        mail.send(msg)
 
     for post in posts:
         post.sent = True
@@ -114,6 +122,20 @@ def send_newsletter():
 
     flash("Newsletter sent successfully!", "success")
     return redirect(url_for('main.index'))
+
+@main.route('/unsubscribe/<token>', methods=['GET', 'POST'])
+def unsubscribe(token):
+    subscriber = Subscriber.query.filter_by(unsubscribe_token=token).first()
+    
+    if not subscriber:
+        return render_template('unsubscribe.html', error="Invalid or expired unsubscribe link.")
+    
+    if request.method == 'POST':
+        db.session.delete(subscriber)
+        db.session.commit()
+        return render_template('unsubscribe.html', success=True)
+    
+    return render_template('unsubscribe.html')
 
 @main.route('/delete/<int:post_id>', methods=['POST'])
 @login_required

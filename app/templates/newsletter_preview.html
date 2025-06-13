@@ -13,6 +13,9 @@
       <p>This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</p>
 
       {% for post in posts %}
+        {% if not loop.first %}
+          <hr class="post-divider">
+        {% endif %}
         <div class="email-post mb-4">
           <h2>{{ post.title }}</h2>
           <p style="color: #666; font-size: 0.9em;">Posted on {{ format_datetime(post.timestamp) }}</p>
@@ -78,6 +81,12 @@
   max-width: 100%;
   height: auto;
   margin: 1rem 0;
+}
+
+.post-divider {
+  border: none;
+  border-top: 2px solid #eee;
+  margin: 2em 0;
 }
 </style>
 {% endblock %}

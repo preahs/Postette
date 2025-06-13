@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Unsubscribe{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body text-center">
+          <h1 class="card-title mb-4">Unsubscribe from this postette</h1>
+          
+          {% if success %}
+            <div class="alert alert-success">
+              <p>You have been successfully unsubscribed from the newsletter.</p>
+            </div>
+          {% elif error %}
+            <div class="alert alert-danger">
+              <p>{{ error }}</p>
+            </div>
+          {% else %}
+            <p class="mb-4">Are you sure you want to unsubscribe?</p>
+            <form method="POST">
+              <button type="submit" class="btn btn-danger">Yes, Unsubscribe</button>
+              <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancel</a>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

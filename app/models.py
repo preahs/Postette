@@ -2,6 +2,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from .extensions import db
+import secrets
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -18,6 +19,10 @@ class Subscriber(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     subscribed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    unsubscribe_token = db.Column(db.String(32), unique=True, nullable=False, default=lambda: secrets.token_urlsafe(16))
+
+    def __repr__(self):
+        return f"<Subscriber {self.email}>"
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
