@@ -201,24 +201,9 @@ body {
     border-color: var(--button-hover);
 }
 
-.btn:active {
-    transform: translateY(0);
-    box-shadow: 2px 2px 0 var(--border-color);
-}
-
-.btn:focus {
-  outline: var(--outline-width) solid var(--accent-color);
-  outline-offset: 4px;
-}
-
-.btn-outline {
-  color: var(--primary-color);
-  border: var(--outline-width) solid var(--primary-color);
-  background: var(--background-color);
-}
-
-.btn-outline:hover {
-  background-color: var(--primary-color);
+.btn-secondary:hover {
+  background-color: #5c6369;
+  border-color: #575e64;
   color: var(--background-color);
 }
 
@@ -294,7 +279,7 @@ body {
   margin: 0 auto 1.5rem;
   border-radius: var(--border-radius);
   border: var(--outline-width) solid var(--border-color);
-  padding: 1.5rem;
+  padding: 0.75rem;
   font-weight: 600;
   position: relative;
 }
@@ -420,19 +405,6 @@ h1, h2, h3, h4, h5, h6 {
 /* Buttons in cards */
 .card-body form {
   text-align: center;
-}
-
-/* Delete buttons */
-.btn-danger {
-  background-color: var(--danger-color);
-  border-color: var(--danger-color);
-  color: var(--background-color);
-}
-
-.btn-danger:hover {
-  background-color: #b71c1c;
-  border-color: #b71c1c;
-  color: var(--background-color);
 }
 
 /* Badges */
@@ -646,7 +618,7 @@ h1, h2, h3, h4, h5, h6 {
     max-width: 600px;
     margin: 2rem auto;
     text-align: center;
-    padding: 2rem;
+    padding: 0.75rem;
     background-color: var(--background-color);
     border: var(--outline-width) solid var(--border-color);
     border-radius: var(--border-radius);
@@ -663,8 +635,27 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Buttons */
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 4px 4px 0 var(--border-color);
-    background-color: var(--button-hover);
+.btn-success:hover {
+  background-color: #17734a;
+  border-color: #176c47;
+  color: var(--background-color);
+}
+
+.btn-primary:hover {
+  background-color: #1a58d3;
+  border-color: #1853c6;
+  color: var(--background-color);
+}
+
+/* Delete buttons */
+.btn-danger {
+  background-color: #d32f2f;
+  border-color: transparent;
+  color: var(--background-color);
+}
+
+.btn-danger:hover {
+  background-color: #b71c1c !important;
+  border-color: transparent !important;
+  color: var(--background-color);
 } 
