@@ -206,3 +206,72 @@ def delete_sent_posts():
     db.session.commit()
     flash('All sent posts and their images have been deleted.', 'success')
     return redirect(url_for('main.index'))
+
+@main.route('/edit/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def edit_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    form = PostForm()
+
+    if form.validate_on_submit():
+        # Handle image updates
+        if form.images.data:
+            # Remove old images if requested
+            if request.form.get('remove_images'):
+                old_images = post.image_filenames.split(',') if post.image_filenames else []
+                for filename in old_images:
+                    if filename.strip():
+                        image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename.strip())
+                        if os.path.exists(image_path):
+                            os.remove(image_path)
+                post.image_filenames = ""
+
+            # Add new images
+            new_image_filenames = []
+            for image in form.images.data:
+                if isinstance(image, FileStorage) and image.filename:
+                    filename = secure_filename(image.filename)
+                    image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                    image.save(image_path)
+                    new_image_filenames.append(filename)
+            
+            if new_image_filenames:
+                if post.image_filenames:
+                    post.image_filenames += "," + ",".join(new_image_filenames)
+                else:
+                    post.image_filenames = ",".join(new_image_filenames)
+
+        # Update post content
+        post.title = form.title.data
+        post.content = form.content.data
+
+        db.session.commit()
+        flash("Post updated successfully!", "success")
+        return redirect(url_for('main.index'))
+
+    # Pre-fill form with existing post data
+    if request.method == 'GET':
+        form.title.data = post.title
+        form.content.data = post.content
+
+    return render_template('edit_post.html', form=form, post=post)
+
+@main.route('/remove-image/<int:post_id>/<filename>', methods=['POST'])
+@login_required
+def remove_image(post_id, filename):
+    post = Post.query.get_or_404(post_id)
+    
+    # Remove image file
+    image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(image_path):
+        os.remove(image_path)
+    
+    # Update post's image_filenames
+    if post.image_filenames:
+        image_list = post.image_filenames.split(',')
+        if filename in image_list:
+            image_list.remove(filename)
+            post.image_filenames = ','.join(image_list)
+            db.session.commit()
+    
+    return redirect(url_for('main.edit_post', post_id=post_id))

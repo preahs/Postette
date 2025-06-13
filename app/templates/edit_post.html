@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Edit Post{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h1>Edit Post</h1>
+  <form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.content.label(class="form-label") }}
+      {{ form.content(class="form-control", rows=6) }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.images.label(class="form-label") }}
+      {{ form.images(class="form-control", multiple=true) }}
+      {% if post.image_filenames %}
+        <div class="current-images mt-2">
+          <p class="mb-1">Current images:</p>
+          <div class="image-list">
+            {% for filename in post.image_filenames.split(',') %}
+              <div class="image-item">
+                <img src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Post image" class="img-thumbnail">
+                <div class="image-actions">
+                  <button type="button" class="btn btn-sm btn-danger remove-image" data-filename="{{ filename }}">Remove</button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      <div class="button-group">
+        {{ form.submit(class="btn btn-primary", value="Save") }}
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %} 
