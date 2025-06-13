@@ -2,24 +2,27 @@
 {% block title %}All Posts{% endblock %}
 {% block content %}
 <div class="container mt-4">
-  <h1>All Posts</h1>
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <a href="{{ url_for('main.create_post') }}" class="btn btn-primary">Create Post</a>
-    <a href="{{ url_for('main.newsletter_preview') }}" class="btn btn-success">Preview Newsletter</a>
-    <form action="{{ url_for('main.delete_sent_posts') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all sent posts? This cannot be undone.');">
-      {% if csrf_token %}
-        {{ csrf_token() }}
-      {% endif %}
-      <button type="submit" class="btn btn-danger">Delete All Sent</button>
-    </form>
+  <div class="action-buttons mb-4">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ url_for('main.create_post') }}" class="btn btn-primary">Create Post</a>
+      <a href="{{ url_for('main.newsletter_preview') }}" class="btn btn-success">Preview Newsletter</a>
+      <form action="{{ url_for('main.delete_sent_posts') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all sent posts? This cannot be undone.');" class="d-inline">
+        {% if csrf_token %}
+          {{ csrf_token() }}
+        {% endif %}
+        <button type="submit" class="btn btn-danger">Delete All Sent</button>
+      </form>
 
-    <form action="{{ url_for('main.generate_invite') }}" method="POST">
-      {% if csrf_token %}
-        {{ csrf_token() }}
-      {% endif %}
-      <button type="submit" class="btn btn-secondary">Generate Invite Link</button>
-    </form>
+      <form action="{{ url_for('main.generate_invite') }}" method="POST" class="d-inline">
+        {% if csrf_token %}
+          {{ csrf_token() }}
+        {% endif %}
+        <button type="submit" class="btn btn-secondary">Generate Invite Link</button>
+      </form>
+    </div>
   </div>
+
+  <h1>All Posts</h1>
 
   {% for post in posts %}
     <div class="card mb-3">
@@ -61,7 +64,9 @@
       </div>
     </div>
   {% else %}
-    <p>No posts yet.</p>
+    <div class="empty-state">
+      <p>No posts yet.</p>
+    </div>
   {% endfor %}
 </div>
 {% endblock %}

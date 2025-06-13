@@ -94,27 +94,27 @@ def send_newsletter():
     for subscriber in subscribers:
         unsubscribe_url = url_for('main.unsubscribe', token=subscriber.unsubscribe_token, _external=True)
         subscriber_html = html_body + f'<p style="font-size: 0.8em; color: #666; margin-top: 2em; border-top: 1px solid #eee; padding-top: 1em;">To unsubscribe from this newsletter, <a href="{unsubscribe_url}">click here</a>.</p>'
-        
-        msg = Message(
-            subject="Preah's Newsletter",
-            sender=current_app.config['MAIL_DEFAULT_SENDER'],
+
+    msg = Message(
+        subject="Preah's Newsletter",
+        sender=current_app.config['MAIL_DEFAULT_SENDER'],
             recipients=[subscriber.email],
             html=subscriber_html
-        )
+    )
 
-        for cid, path in attachments:
-            with open(path, 'rb') as img:
-                msg.attach(
-                    filename=os.path.basename(path),
-                    content_type="image/jpeg",
-                    data=img.read(),
-                    headers={
-                        'Content-ID': f'<{cid}>',
-                        'Content-Disposition': 'inline'
-                    }
-                )
+    for cid, path in attachments:
+        with open(path, 'rb') as img:
+            msg.attach(
+                filename=os.path.basename(path),
+                content_type="image/jpeg",
+                data=img.read(),
+                headers={
+                    'Content-ID': f'<{cid}>',
+                    'Content-Disposition': 'inline'
+                }
+            )
 
-        mail.send(msg)
+    mail.send(msg)
 
     for post in posts:
         post.sent = True
@@ -159,7 +159,7 @@ def delete_post(post_id):
 def generate_invite():
     token = current_app.token_serializer.dumps('invite')
     invite_link = url_for('main.subscribe_with_token', token=token, _external=True)
-    flash(f"Invite link generated: {invite_link}")
+    flash(invite_link, 'invite_link')
     return redirect(url_for('main.index'))
 
 @main.route('/subscribe/<token>', methods=['GET', 'POST'])

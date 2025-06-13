@@ -3,13 +3,13 @@
 {% block content %}
 <div class="container mt-4">
   <h1>Subscribe to the Newsletter</h1>
-  <form method="POST">
+  <form method="POST" class="subscribe-form">
     {{ form.hidden_tag() }}
-    <div class="mb-3">
+    <div class="form-group">
       {{ form.email.label(class="form-label") }}
       {{ form.email(class="form-control") }}
     </div>
-    <div class="mb-3">
+    <div class="form-group">
       {{ form.submit(class="btn btn-success") }}
     </div>
   </form>
