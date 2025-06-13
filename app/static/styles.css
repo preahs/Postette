@@ -44,4 +44,217 @@
     .post-image-container {
         padding-top: 66.67%; /* 3:2 Aspect Ratio for mobile */
     }
+}
+
+:root {
+  --primary-color: #0751cf;
+  --primary-light: #4a7fd9;
+  --primary-dark: #053a9e;
+  --text-color: #2c3e50;
+  --text-light: #7f8c8d;
+  --background-color: #f4f4f9;
+  --card-background: #ffffff;
+  --header-background: #fdfdfd;
+  --border-color: #e9ecef;
+  --success-color: #2ecc71;
+  --warning-color: #f1c40f;
+  --danger-color: #e74c3c;
+  --button-color: #0751cf;
+  --button-hover: #053a9e;
+}
+
+body {
+  font-family: 'Quicksand', sans-serif;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Styles */
+.site-header {
+  background-color: var(--header-background);
+  padding: 1.5rem 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.site-title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.site-title a {
+  text-decoration: none;
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.handwritten {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 2rem 0;
+}
+
+/* Cards */
+.card {
+  background-color: var(--card-background);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 2rem;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+/* Buttons */
+.btn {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--button-color);
+  border-color: var(--button-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--button-hover);
+  border-color: var(--button-hover);
+}
+
+.btn-outline {
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  background: transparent;
+}
+
+.btn-outline:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Forms */
+.form-control {
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  font-family: 'Quicksand', sans-serif;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(7, 81, 207, 0.25);
+}
+
+/* Alerts */
+.alert {
+  border-radius: 8px;
+  border: none;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Footer */
+.site-footer {
+  background-color: var(--header-background);
+  padding: 2rem 0;
+  margin-top: 3rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-light);
+}
+
+/* Newsletter Preview */
+.email-preview {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.email-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.email-header h2 {
+  font-family: 'Playfair Display', serif;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.email-post {
+  margin-bottom: 2rem;
+}
+
+.email-post h2 {
+  font-family: 'Playfair Display', serif;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.post-divider {
+  border: none;
+  border-top: 2px solid var(--border-color);
+  margin: 2rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .site-title a {
+    align-items: center;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
 } 
