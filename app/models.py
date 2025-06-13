@@ -18,8 +18,16 @@ class Post(db.Model):
 class Subscriber(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    subscribed_at = db.Column(db.DateTime, default=datetime.utcnow)
-    unsubscribe_token = db.Column(db.String(32), unique=True, nullable=False, default=lambda: secrets.token_urlsafe(16))
+    unsubscribe_token = db.Column(db.String(100), unique=True, nullable=False)
+    verification_token = db.Column(db.String(100), unique=True, nullable=True)
+    is_verified = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, email):
+        self.email = email
+        self.unsubscribe_token = secrets.token_urlsafe(32)
+        self.verification_token = secrets.token_urlsafe(32)
+        self.is_verified = False
 
     def __repr__(self):
         return f"<Subscriber {self.email}>"

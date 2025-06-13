@@ -168,25 +168,42 @@ body {
   margin-bottom: 1rem;
 }
 
-/* Buttons */
+/* Button styles */
 .btn {
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  padding: 1rem 2rem;
-  border-radius: var(--border-radius);
-  border: var(--outline-width) solid var(--border-color);
-  background-color: var(--button-color);
-  color: var(--background-color);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    border: var(--outline-width) solid var(--border-color);
+    background-color: var(--button-color);
+    color: var(--background-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+}
+
+.btn-sm {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+    min-width: 100px;
+    height: 42px;
 }
 
 .btn:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 8px 8px 0 var(--border-color);
-  background-color: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 4px 4px 0 var(--border-color);
+    background-color: var(--button-hover);
+    border-color: var(--button-hover);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 2px 2px 0 var(--border-color);
 }
 
 .btn:focus {
@@ -622,4 +639,32 @@ h1, h2, h3, h4, h5, h6 {
 /* Form submit button spacing */
 .form-group:last-child {
   margin-top: 1.5rem;
+}
+
+/* Verification page */
+.verification-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--background-color);
+    border: var(--outline-width) solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.verification-container h1 {
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+}
+
+.verification-container p {
+    margin-bottom: 2rem;
+    color: var(--text-color);
+}
+
+/* Buttons */
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 4px 4px 0 var(--border-color);
+    background-color: var(--button-hover);
 } 

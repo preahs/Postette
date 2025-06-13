@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Verify Email{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="verification-container">
+    {% if success %}
+      <h1>Email Verified!</h1>
+      <p>Thank you for verifying your email address. You will now receive updates.</p>
+    {% else %}
+      <h1>Verification Failed</h1>
+      <p>{{ error }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} 

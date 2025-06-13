@@ -62,9 +62,9 @@ def send_newsletter():
         flash("No new posts to send.", "warning")
         return redirect(url_for('main.index'))
 
-    subscribers = Subscriber.query.all()
+    subscribers = Subscriber.query.filter_by(is_verified=True).all()
     if not subscribers:
-        flash("No subscribers found. Cannot send newsletter.", "danger")
+        flash("No verified subscribers found. Cannot send newsletter.", "danger")
         return redirect(url_for('main.index'))
 
     html_body = "<p>This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</p>"
@@ -178,15 +178,55 @@ def subscribe_with_token(token):
         email = form.email.data
         existing = Subscriber.query.filter_by(email=email).first()
         if existing:
-            flash("You're already subscribed!", "info")
+            if existing.is_verified:
+                flash("You're already subscribed!", "info")
+            else:
+                # Resend verification email
+                verification_url = url_for('main.verify_email', token=existing.verification_token, _external=True)
+                msg = Message(
+                    subject="Verify Your Email - Postette Newsletter",
+                    sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                    recipients=[email]
+                )
+                msg.html = render_template('verify_email.html', verification_url=verification_url)
+                mail.send(msg)
+                flash("Please check your email to verify your subscription.", "info")
         else:
             new_subscriber = Subscriber(email=email)
             db.session.add(new_subscriber)
             db.session.commit()
-            flash("Subscribed successfully!", "success")
+
+            # Send verification email
+            verification_url = url_for('main.verify_email', token=new_subscriber.verification_token, _external=True)
+            msg = Message(
+                subject="Verify Your Email - Postette Newsletter",
+                sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                recipients=[email]
+            )
+            msg.html = render_template('verify_email.html', verification_url=verification_url)
+            mail.send(msg)
+
+            flash("Please check your email to verify your subscription.", "success")
         return redirect(url_for('main.index'))
 
     return render_template('subscribe.html', form=form)
+
+@main.route('/verify/<token>')
+def verify_email(token):
+    subscriber = Subscriber.query.filter_by(verification_token=token).first()
+    
+    if not subscriber:
+        return render_template('verify.html', success=False, 
+                             error="Invalid or expired verification link.")
+    
+    if subscriber.is_verified:
+        return render_template('verify.html', success=True)
+    
+    subscriber.is_verified = True
+    subscriber.verification_token = None  # Clear the token after verification
+    db.session.commit()
+    
+    return render_template('verify.html', success=True)
 
 @main.route('/delete-sent-posts', methods=['POST'])
 @login_required
