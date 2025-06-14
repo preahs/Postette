@@ -1,28 +1,19 @@
 {% extends "base.html" %}
-{% block title %}All Posts{% endblock %}
+{% block title %}Archived Posts{% endblock %}
 {% block content %}
 <div class="container mt-4">
   <div class="action-buttons mb-4">
     <div class="d-flex flex-wrap gap-2">
-      <a href="{{ url_for('main.create_post') }}" class="btn btn-primary">Create Post</a>
-      <a href="{{ url_for('main.newsletter_preview') }}" class="btn btn-success">Preview Newsletter</a>
-      <form action="{{ url_for('main.archive_sent_posts') }}" method="POST" onsubmit="return confirm('Are you sure you want to archive all sent posts?');" class="d-inline">
+      <form action="{{ url_for('main.delete_all_archived') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all archived posts? This cannot be undone.');" class="d-inline">
         {% if csrf_token %}
           {{ csrf_token() }}
         {% endif %}
-        <button type="submit" class="btn btn-secondary">Archive All Sent</button>
-      </form>
-
-      <form action="{{ url_for('main.generate_invite') }}" method="POST" class="d-inline">
-        {% if csrf_token %}
-          {{ csrf_token() }}
-        {% endif %}
-        <button type="submit" class="btn btn-secondary">Generate Invite Link</button>
+        <button type="submit" class="btn btn-danger">Delete All Archived</button>
       </form>
     </div>
   </div>
 
-  <h1>All Posts</h1>
+  <h1>Archived Posts</h1>
 
   {% for post in posts %}
     <div class="card mb-3">
@@ -48,12 +39,14 @@
                      loading="lazy">
               </div>
           {% endfor %}
-        </div>
+          </div>
         {% endif %}
 
-        <!-- Delete Button -->
+        <!-- Archive Actions -->
         <div class="post-actions">
-          <a href="{{ url_for('main.edit_post', post_id=post.id) }}" class="btn btn-primary">Edit</a>
+          <form action="{{ url_for('main.restore_post', post_id=post.id) }}" method="post" class="d-inline">
+            <button type="submit" class="btn btn-success">Restore</button>
+          </form>
           <form action="{{ url_for('main.delete_post', post_id=post.id) }}" method="post" class="d-inline">
             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this post?')">Delete</button>
           </form>
@@ -62,8 +55,8 @@
     </div>
   {% else %}
     <div class="empty-state">
-      <p>No posts yet.</p>
+      <p>No archived posts.</p>
     </div>
   {% endfor %}
 </div>
-{% endblock %}
+{% endblock %} 

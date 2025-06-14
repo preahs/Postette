@@ -15,8 +15,59 @@ main = Blueprint('main', __name__)
 @main.route('/')
 @login_required
 def index():
-    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    posts = Post.query.filter_by(archived=False).order_by(Post.timestamp.desc()).all()
     return render_template('index.html', posts=posts)
+
+@main.route('/archive')
+@login_required
+def archive():
+    posts = Post.query.filter_by(archived=True).order_by(Post.timestamp.desc()).all()
+    return render_template('archive.html', posts=posts)
+
+@main.route('/archive-sent-posts', methods=['POST'])
+@login_required
+def archive_sent_posts():
+    sent_posts = Post.query.filter_by(sent=True, archived=False).all()
+    if not sent_posts:
+        flash('No sent posts to archive.', 'info')
+        return redirect(url_for('main.index'))
+        
+    for post in sent_posts:
+        post.archived = True
+    db.session.commit()
+    flash('All sent posts have been archived.', 'success')
+    return redirect(url_for('main.index'))
+
+@main.route('/delete-all-archived', methods=['POST'])
+@login_required
+def delete_all_archived():
+    archived_posts = Post.query.filter_by(archived=True).all()
+    if not archived_posts:
+        flash('No archived posts to delete.', 'info')
+        return redirect(url_for('main.archive'))
+        
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+
+    for post in archived_posts:
+        if post.image_filenames:
+            for filename in post.image_filenames.split(','):
+                filepath = os.path.join(upload_folder, filename.strip())
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+        db.session.delete(post)
+
+    db.session.commit()
+    flash('All archived posts and their images have been deleted.', 'success')
+    return redirect(url_for('main.archive'))
+
+@main.route('/restore/<int:post_id>', methods=['POST'])
+@login_required
+def restore_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    post.archived = False
+    db.session.commit()
+    flash('Post has been restored.', 'success')
+    return redirect(url_for('main.archive'))
 
 @main.route('/create', methods=['GET', 'POST'])
 @login_required
@@ -93,7 +144,7 @@ def send_newsletter():
     # Send individual emails to each subscriber with their unique unsubscribe link
     for subscriber in subscribers:
         unsubscribe_url = url_for('main.unsubscribe', token=subscriber.unsubscribe_token, _external=True)
-        subscriber_html = html_body + f'<p style="font-size: 0.8em; color: #666; margin-top: 2em; border-top: 1px solid #eee; padding-top: 1em;">To unsubscribe from this newsletter, <a href="{unsubscribe_url}">click here</a>.</p>'
+        subscriber_html = html_body + f'<p style="font-size: 0.8em; color: #666; margin-top: 2em; border-top: 1px solid #eee; padding-top: 1em;">To unsubscribe, <a href="{unsubscribe_url}">click here</a>.</p>'
 
     msg = Message(
         subject="Preah's Newsletter",
