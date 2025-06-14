@@ -3,15 +3,15 @@
 {% block content %}
 <div class="container mt-4">
   <h1>Newsletter Preview</h1>
+  <p class="text-muted mb-4 text-center">This is how your newsletter will appear in subscribers' inboxes</p>
+  
   <div class="email-preview">
     <div class="email-header mb-4">
-      <h2>Preah's Newsletter</h2>
-      <p class="text-muted">This is how your newsletter will appear in subscribers' inboxes</p>
+      <h2>Subject: Preah's Newsletter</h2>
+      <p class="text-start">This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</p>
     </div>
 
     <div class="email-content">
-      <p>This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</p>
-
   {% for post in posts %}
         {% if not loop.first %}
           <hr class="post-divider">

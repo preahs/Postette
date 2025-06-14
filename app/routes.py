@@ -230,7 +230,7 @@ def subscribe_with_token(token):
         existing = Subscriber.query.filter_by(email=email).first()
         if existing:
             if existing.is_verified:
-                flash("You're already subscribed!", "info")
+                return render_template('subscribe.html', success=True, message="You're already subscribed!")
             else:
                 # Resend verification email
                 verification_url = url_for('main.verify_email', token=existing.verification_token, _external=True)
@@ -241,7 +241,7 @@ def subscribe_with_token(token):
                 )
                 msg.html = render_template('verify_email.html', verification_url=verification_url)
                 mail.send(msg)
-                flash("Please check your email to verify your subscription.", "info")
+                return render_template('subscribe.html', success=True)
         else:
             new_subscriber = Subscriber(email=email)
             db.session.add(new_subscriber)
@@ -257,8 +257,7 @@ def subscribe_with_token(token):
             msg.html = render_template('verify_email.html', verification_url=verification_url)
             mail.send(msg)
 
-            flash("Please check your email to verify your subscription.", "success")
-        return redirect(url_for('main.index'))
+            return render_template('subscribe.html', success=True)
 
     return render_template('subscribe.html', form=form)
 
