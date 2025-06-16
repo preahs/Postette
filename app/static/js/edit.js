@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const removeButtons = document.querySelectorAll('.remove-image');
+    // Handles removal of EXISTING images
+    const removeExistingImageButtons = document.querySelectorAll('.image-preview-item.existing-image-item .remove-image-preview[data-action="remove-existing"]');
     
-    removeButtons.forEach(button => {
+    removeExistingImageButtons.forEach(button => {
         button.addEventListener('click', async function() {
-            const filename = this.dataset.filename;
+            const imagePreviewItem = this.closest('.image-preview-item');
+            const filename = imagePreviewItem.dataset.filename;
             const postId = window.location.pathname.split('/')[2];
             
             try {
@@ -11,25 +13,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        // Add CSRF token if you have it in your forms
+                        // 'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
                     }
                 });
                 
                 if (response.ok) {
-                    // Remove the image element from the DOM
-                    const imageItem = this.closest('.image-item');
-                    imageItem.remove();
-                    
-                    // If no images left, remove the "Current images" section
-                    const imageList = document.querySelector('.image-list');
-                    if (imageList && !imageList.children.length) {
-                        const currentImages = document.querySelector('.current-images');
-                        if (currentImages) {
-                            currentImages.remove();
-                        }
-                    }
+                    imagePreviewItem.remove(); // Remove the image element from the DOM
+                } else {
+                    console.error('Failed to remove image on server:', response.statusText);
+                    alert('Failed to remove image. Please try again.');
                 }
             } catch (error) {
                 console.error('Error removing image:', error);
+                alert('An error occurred while removing the image.');
             }
         });
     });

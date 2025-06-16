@@ -61,15 +61,25 @@
         </p>
         <p>{{ post.content|safe }}</p>
         {% if post.image_filenames %}
-          <div class="post-images {% if post.image_filenames.count(',') == 0 %}single{% endif %}">
-          {% for filename in post.image_filenames.split(',') if filename %}
+          {% set image_list = post.image_filenames.split(',') | select('ne', '') | list %}
+          {% set display_limit = 4 %}
+          {% set num_remaining = image_list|length - display_limit %}
+          <div class="post-images {% if image_list|length == 1 %}single{% endif %}">
+          {% for filename in image_list %}
+            {% if loop.index0 < display_limit %}
               <div class="post-image-container">
                 <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" 
                      class="post-image" 
                      alt="Post image"
                      loading="lazy">
               </div>
+            {% endif %}
           {% endfor %}
+          {% if num_remaining > 0 %}
+            <div class="more-images-overlay">
+              <p>+{{ num_remaining }} More Images</p>
+            </div>
+          {% endif %}
         </div>
         {% endif %}
 

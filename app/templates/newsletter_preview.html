@@ -7,8 +7,39 @@
   
   <div class="email-preview">
     <div class="email-header mb-4">
-      <h2>Subject: Preah's Newsletter</h2>
+      <div class="d-flex align-items-center gap-2">
+        <h2 class="mb-0">Subject: {{ current_user.newsletter_title }}</h2>
+        <button type="button" class="copy-button" data-bs-toggle="modal" data-bs-target="#editTitleModal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+          </svg>
+        </button>
+      </div>
       <p class="text-start">This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</p>
+    </div>
+
+    <!-- Edit Title Modal -->
+    <div class="modal fade" id="editTitleModal" tabindex="-1" aria-labelledby="editTitleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editTitleModalLabel">Edit Newsletter Title</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form action="{{ url_for('main.update_newsletter_title') }}" method="POST">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="newsletter_title" class="form-label">Newsletter Title</label>
+                <input type="text" class="form-control" id="newsletter_title" name="newsletter_title" value="{{ current_user.newsletter_title }}" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
     <div class="email-content">
@@ -23,11 +54,26 @@
             {{ post.content|safe }}
           </div>
           {% if post.image_filenames %}
-        {% for filename in post.image_filenames.split(',') if filename %}
-              <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" 
-                   style="max-width: 100%; margin: 1rem 0;"
-                   alt="Post image">
-        {% endfor %}
+            {% set image_list = post.image_filenames.split(',') | select('ne', '') | list %}
+            {% set display_limit = 4 %}
+            {% set num_remaining = image_list|length - display_limit %}
+            <div class="post-images {% if image_list|length == 1 %}single{% endif %}">
+              {% for filename in image_list %}
+                {% if loop.index0 < display_limit %}
+                  <div class="post-image-container">
+                    <img src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" 
+                         class="post-image" 
+                         alt="Post image"
+                         loading="lazy">
+                  </div>
+                {% endif %}
+              {% endfor %}
+              {% if num_remaining > 0 %}
+                <div class="more-images-overlay">
+                  <p>+{{ num_remaining }} More Images</p>
+                </div>
+              {% endif %}
+            </div>
           {% endif %}
     </div>
   {% else %}
@@ -47,46 +93,4 @@
   </div>
 </div>
 
-<style>
-.email-preview {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.email-header {
-  border-bottom: 2px solid #eee;
-  padding-bottom: 1rem;
-}
-
-.email-post {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 1rem;
-}
-
-.email-post:last-child {
-  border-bottom: none;
-}
-
-.post-content {
-  line-height: 1.6;
-  margin: 1rem 0;
-}
-
-.post-content img {
-  max-width: 100%;
-  height: auto;
-  margin: 1rem 0;
-}
-
-.post-divider {
-  border: none;
-  border-top: 2px solid #eee;
-  margin: 2em 0;
-}
-</style>
 {% endblock %}

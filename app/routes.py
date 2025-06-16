@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from werkzeug.utils import secure_filename
 from .models import Post, Subscriber
 from . import db, mail
@@ -8,7 +8,10 @@ from werkzeug.datastructures import FileStorage
 from email.utils import make_msgid
 from .utils import format_datetime
 import os
-from flask_login import login_required
+from flask_login import login_required, current_user
+
+MAX_TOTAL_IMAGE_SIZE_MB = 15
+MAX_TOTAL_IMAGE_SIZE_BYTES = MAX_TOTAL_IMAGE_SIZE_MB * 1024 * 1024
 
 main = Blueprint('main', __name__)
 
@@ -76,10 +79,18 @@ def create_post():
 
     if form.validate_on_submit():
         image_filenames = []
+        current_total_image_size = 0
 
         if form.images.data:
             for image in form.images.data:
                 if isinstance(image, FileStorage) and image.filename:
+                    current_total_image_size += len(image.read())
+                    image.seek(0) # Reset stream position after reading
+
+                    if current_total_image_size > MAX_TOTAL_IMAGE_SIZE_BYTES:
+                        flash(f'Total image size exceeds the limit of {MAX_TOTAL_IMAGE_SIZE_MB}MB. Please reduce the number or size of images.', 'danger')
+                        return render_template('create_post.html', form=form)
+
                     filename = secure_filename(image.filename)
                     image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
                     image.save(image_path)
@@ -121,6 +132,22 @@ def send_newsletter():
     html_body = "<p>This is an automated newsletter. You can reply to this email and the sender will see it. Please do not Reply All, or else everyone will see your response!</p>"
     attachments = []
 
+    # Calculate total size of attachments for all posts in the newsletter
+    current_newsletter_total_size = 0
+    for post in posts:
+        if post.image_filenames:
+            for filename in post.image_filenames.split(','):
+                filename = filename.strip()
+                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                if os.path.exists(image_path):
+                    current_newsletter_total_size += os.path.getsize(image_path)
+
+    print(f"DEBUG: Pre-send check - Current newsletter total size: {current_newsletter_total_size / (1024 * 1024):.2f} MB")
+    print(f"DEBUG: Pre-send check - MAX_TOTAL_IMAGE_SIZE_MB: {MAX_TOTAL_IMAGE_SIZE_MB} MB")
+    if current_newsletter_total_size > MAX_TOTAL_IMAGE_SIZE_BYTES:
+        flash(f'Total image size for this newsletter ({current_newsletter_total_size / (1024 * 1024):.2f} MB) exceeds the limit of {MAX_TOTAL_IMAGE_SIZE_MB}MB. Please reduce the number or size of images across your unsent posts.', 'danger')
+        return redirect(url_for('main.newsletter_preview'))
+
     for i, post in enumerate(posts):
         if i > 0:  # Add divider before all posts except the first one
             html_body += '<hr style="border: none; border-top: 2px solid #eee; margin: 2em 0;">'
@@ -141,31 +168,37 @@ def send_newsletter():
 
     html_body += "<p><small>Sent via Postette</small></p>"
 
-    # Send individual emails to each subscriber with their unique unsubscribe link
-    for subscriber in subscribers:
-        unsubscribe_url = url_for('main.unsubscribe', token=subscriber.unsubscribe_token, _external=True)
-        subscriber_html = html_body + f'<p style="font-size: 0.8em; color: #666; margin-top: 2em; border-top: 1px solid #eee; padding-top: 1em;">To unsubscribe, <a href="{unsubscribe_url}">click here</a>.</p>'
+    # Debug: Calculate total attachment size before sending
+    # total_attachments_size = sum(os.path.getsize(filepath) for _, filepath in attachments)
+    # print(f"DEBUG: Total attachment size for newsletter: {total_attachments_size / (1024 * 1024):.2f} MB")
+    # print(f"DEBUG: Number of attachments: {len(attachments)}")
 
-    msg = Message(
-        subject="Preah's Newsletter",
-        sender=current_app.config['MAIL_DEFAULT_SENDER'],
-            recipients=[subscriber.email],
-            html=subscriber_html
-    )
+    # Send email to all verified subscribers
+    with mail.connect() as connection:
+        for subscriber in subscribers:
+            unsubscribe_url = url_for('main.unsubscribe', token=subscriber.unsubscribe_token, _external=True)
+            subscriber_html = html_body + f'<p style="font-size: 0.8em; color: #666; margin-top: 2em; border-top: 1px solid #eee; padding-top: 1em;">To unsubscribe, <a href="{unsubscribe_url}">click here</a>.</p>'
 
-    for cid, path in attachments:
-        with open(path, 'rb') as img:
-            msg.attach(
-                filename=os.path.basename(path),
-                content_type="image/jpeg",
-                data=img.read(),
-                headers={
-                    'Content-ID': f'<{cid}>',
-                    'Content-Disposition': 'inline'
-                }
+            msg = Message(
+                subject=current_user.newsletter_title,
+                sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                recipients=[subscriber.email],
+                html=subscriber_html
             )
 
-    mail.send(msg)
+            for cid, path in attachments:
+                with open(path, 'rb') as img:
+                    msg.attach(
+                        filename=os.path.basename(path),
+                        content_type="image/jpeg",
+                        data=img.read(),
+                        headers={
+                            'Content-ID': f'<{cid}>',
+                            'Content-Disposition': 'inline'
+                        }
+                    )
+
+            mail.send(msg)
 
     for post in posts:
         post.sent = True
@@ -303,33 +336,56 @@ def edit_post(post_id):
     post = Post.query.get_or_404(post_id)
     form = PostForm()
 
-    if form.validate_on_submit():
-        # Handle image updates
-        if form.images.data:
-            # Remove old images if requested
-            if request.form.get('remove_images'):
-                old_images = post.image_filenames.split(',') if post.image_filenames else []
-                for filename in old_images:
-                    if filename.strip():
-                        image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename.strip())
-                        if os.path.exists(image_path):
-                            os.remove(image_path)
-                post.image_filenames = ""
+    # Prepare existing image data for client-side JavaScript
+    existing_images_data = []
+    if post.image_filenames:
+        for filename in post.image_filenames.split(','):
+            if filename.strip():
+                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename.strip())
+                if os.path.exists(image_path):
+                    existing_images_data.append({'filename': filename.strip(), 'size': os.path.getsize(image_path)})
 
-            # Add new images
+    if form.validate_on_submit():
+        current_total_image_size = 0
+        # Calculate size of existing images that are NOT being removed
+        # This logic needs to be careful because existing_images will only contain filenames from the hidden inputs
+        # So we need to compute their sizes based on what's still 'present'
+        remaining_existing_filenames = request.form.getlist('existing_images')
+        for filename in remaining_existing_filenames:
+            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename.strip())
+            if os.path.exists(image_path):
+                current_total_image_size += os.path.getsize(image_path)
+
+        # Handle image updates (new images)
+        if form.images.data:
             new_image_filenames = []
             for image in form.images.data:
                 if isinstance(image, FileStorage) and image.filename:
+                    current_total_image_size += len(image.read())
+                    image.seek(0) # Reset stream position after reading
+
+                    if current_total_image_size > MAX_TOTAL_IMAGE_SIZE_BYTES:
+                        flash(f'Total image size exceeds the limit of {MAX_TOTAL_IMAGE_SIZE_MB}MB. Please reduce the number or size of images.', 'danger')
+                        # Pass existing images data back to template on error
+                        return render_template('edit_post.html', form=form, post=post, existing_images_data=existing_images_data)
+
                     filename = secure_filename(image.filename)
                     image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
                     image.save(image_path)
                     new_image_filenames.append(filename)
             
             if new_image_filenames:
-                if post.image_filenames:
-                    post.image_filenames += "," + ",".join(new_image_filenames)
-                else:
-                    post.image_filenames = ",".join(new_image_filenames)
+                # This part needs to be merged carefully with remaining_existing_filenames
+                post.image_filenames = ",".join(remaining_existing_filenames + new_image_filenames)
+            else:
+                post.image_filenames = ",".join(remaining_existing_filenames)
+
+        # If no new images and old ones were removed, update post.image_filenames
+        elif post.image_filenames and not remaining_existing_filenames: # All existing images were removed
+             post.image_filenames = ""
+        elif post.image_filenames: # Only existing images, some might have been removed
+            post.image_filenames = ",".join(remaining_existing_filenames)
+
 
         # Update post content
         post.title = form.title.data
@@ -344,7 +400,8 @@ def edit_post(post_id):
         form.title.data = post.title
         form.content.data = post.content
 
-    return render_template('edit_post.html', form=form, post=post)
+    # Pass existing images data to the template for initial rendering
+    return render_template('edit_post.html', form=form, post=post, existing_images_data=existing_images_data)
 
 @main.route('/remove-image/<int:post_id>/<filename>', methods=['POST'])
 @login_required
@@ -364,4 +421,14 @@ def remove_image(post_id, filename):
             post.image_filenames = ','.join(image_list)
             db.session.commit()
     
-    return redirect(url_for('main.edit_post', post_id=post_id))
+    return jsonify(success=True) # Return JSON response for AJAX
+
+@main.route('/update-newsletter-title', methods=['POST'])
+@login_required
+def update_newsletter_title():
+    new_title = request.form.get('newsletter_title')
+    if new_title:
+        current_user.newsletter_title = new_title
+        db.session.commit()
+        flash('Newsletter title updated successfully.', 'success')
+    return redirect(url_for('main.newsletter_preview'))

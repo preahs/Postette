@@ -18,7 +18,11 @@
 
     <div class="mb-3">
       {{ form.images.label(class="form-label") }}
-      {{ form.images(class="form-control", multiple=true) }}
+      <div id="drop-zone" class="drop-zone">
+        <p>Drag and drop images here, or click to browse</p>
+        <input type="file" id="file-input" name="images" multiple accept="image/*" style="display: none;">
+      </div>
+      <div id="image-preview-container" class="image-preview-container mt-3"></div>
     </div>
 
     <div class="mb-3">
@@ -26,4 +30,7 @@
     </div>
   </form>
 </div>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/drag_drop_upload.js') }}"></script>
+{% endblock %}
 {% endblock %}
