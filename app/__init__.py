@@ -19,7 +19,7 @@ def create_app():
 
     # Load config from environment variables
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')  # fallback to 'dev'
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///app.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_pre_ping': True,
@@ -35,20 +35,14 @@ def create_app():
     app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
-    
-    # Base URL for email links
-    app.config['BASE_URL'] = os.environ.get('BASE_URL', 'http://localhost:5000')
 
     # Initialize extensions
     db.init_app(app)
     mail.init_app(app)
-    
-    # Initialize Flask-Migrate with explicit configuration
-    migrate.init_app(app, db, directory='migrations')
+    migrate.init_app(app, db)
 
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
-    login_manager.login_message = ''  # Disable the default login message
     app.login_manager = login_manager
 
     # Token serializer for invite-only links
