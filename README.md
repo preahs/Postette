@@ -2,9 +2,8 @@
 
 A self-hostable newsletter service for sending personalized updates to friends and family. Postette provides a simple, elegant interface for managing your newsletter subscriptions and sending beautiful, formatted emails to your loved ones.
 
-## ⚠️ Warning: Work in Progress
-
-This project is currently in active development and should be considered unstable. Features may change, bugs may exist, and the API is not yet stable. Use at your own risk.
+> [!WARNING]
+This project is currently in active development and should be considered unstable. Features may change, bugs may exist, and the application is not yet stable. Use at your own risk.
 
 ## Features
 
