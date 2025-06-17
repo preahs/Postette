@@ -10,6 +10,7 @@ class MultiCheckboxField(SelectMultipleField):
 
 class SetupForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
     newsletter_title = StringField('Subject Line/Newsletter Title (this can be changed later)', validators=[DataRequired()])
@@ -26,3 +27,12 @@ class PostForm(FlaskForm):
 class SubscribeForm(FlaskForm):
     email = StringField('Your Email', validators=[DataRequired(), Email()])
     submit = SubmitField('Subscribe')
+
+class ResetPasswordRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('New Password', validators=[DataRequired()])
+    confirm = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
+    submit = SubmitField('Reset Password')
