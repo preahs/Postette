@@ -192,10 +192,7 @@ def send_newsletter():
                         filename=os.path.basename(path),
                         content_type="image/jpeg",
                         data=img.read(),
-                        headers={
-                            'Content-ID': f'<{cid}>',
-                            'Content-Disposition': 'inline'
-                        }
+                        headers=[('Content-ID', f'<{cid}>'), ('Content-Disposition', 'inline')]
                     )
 
             mail.send(msg)

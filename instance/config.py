@@ -4,7 +4,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev')
     SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static/uploads')
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'app/static/uploads')
 
     # Flask-Mail Config
     MAIL_SERVER = os.getenv("MAIL_SERVER")
