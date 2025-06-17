@@ -1,9 +1,9 @@
 # Postette
 
-A self-hostable newsletter service for sending personalized updates to friends and family. Postette provides a simple, elegant interface for managing your newsletter subscriptions and sending beautiful, formatted emails to your loved ones.
+A self-hostable newsletter service for sending personalized updates to friends and family. Postette provides a simple, accessible interface for managing your newsletter subscriptions and sending emails to anyone.
 
 > [!WARNING]
-This project is currently in active development and should be considered unstable. Features may change, bugs may exist, and the application is not yet stable. Use at your own risk.
+This project is currently in active development and should be considered unstable. Features may change and bugs may exist. Use at your own risk.
 
 ## Features
 
@@ -14,7 +14,7 @@ This project is currently in active development and should be considered unstabl
 - Email verification
 - Invite system for subscribers
 
-## Installation
+## Developer Installation
 
 ### Prerequisites
 
@@ -60,12 +60,7 @@ This project is currently in active development and should be considered unstabl
    flask db upgrade
    ```
 
-6. Create an admin user:
-   ```bash
-   python create_user.py
-   ```
-
-7. Run the application:
+6. Run the application:
    ```bash
    flask run
    ```
