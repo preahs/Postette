@@ -18,11 +18,20 @@
 
     <div class="mb-3">
       {{ form.images.label(class="form-label") }}
-      <div id="drop-zone" class="drop-zone">
+      <div id="image-drop-zone" class="drop-zone">
         <p>Drag and drop images here, or click to browse</p>
-        <input type="file" id="file-input" name="images" multiple accept="image/*" style="display: none;">
+        <input type="file" id="image-file-input" name="images" multiple accept="image/*" style="display: none;">
       </div>
       <div id="image-preview-container" class="image-preview-container mt-3"></div>
+    </div>
+
+    <div class="mb-3">
+      {{ form.videos.label(class="form-label") }}
+      <div id="video-drop-zone" class="drop-zone">
+        <p>Drag and drop videos here, or click to browse</p>
+        <input type="file" id="video-file-input" name="videos" multiple accept="video/*" style="display: none;">
+      </div>
+      <div id="video-preview-container" class="video-preview-container mt-3"></div>
     </div>
 
     <div class="mb-3">

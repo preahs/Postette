@@ -12,6 +12,8 @@ from flask_login import login_required, current_user
 
 MAX_TOTAL_IMAGE_SIZE_MB = 15
 MAX_TOTAL_IMAGE_SIZE_BYTES = MAX_TOTAL_IMAGE_SIZE_MB * 1024 * 1024
+MAX_TOTAL_VIDEO_SIZE_MB = 100
+MAX_TOTAL_VIDEO_SIZE_BYTES = MAX_TOTAL_VIDEO_SIZE_MB * 1024 * 1024
 
 main = Blueprint('main', __name__)
 
@@ -79,7 +81,9 @@ def create_post():
 
     if form.validate_on_submit():
         image_filenames = []
+        video_filenames = []
         current_total_image_size = 0
+        current_total_video_size = 0
 
         if form.images.data:
             for image in form.images.data:
@@ -96,10 +100,26 @@ def create_post():
                     image.save(image_path)
                     image_filenames.append(filename)
 
+        if form.videos.data:
+            for video in form.videos.data:
+                if isinstance(video, FileStorage) and video.filename:
+                    current_total_video_size += len(video.read())
+                    video.seek(0) # Reset stream position after reading
+
+                    if current_total_video_size > MAX_TOTAL_VIDEO_SIZE_BYTES:
+                        flash(f'Total video size exceeds the limit of {MAX_TOTAL_VIDEO_SIZE_MB}MB. Please reduce the number or size of videos.', 'danger')
+                        return render_template('create_post.html', form=form)
+
+                    filename = secure_filename(video.filename)
+                    video_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                    video.save(video_path)
+                    video_filenames.append(filename)
+
         post = Post(
             title=form.title.data,
             content=form.content.data,
-            image_filenames=",".join(image_filenames) if image_filenames else ""
+            image_filenames=",".join(image_filenames) if image_filenames else "",
+            video_filenames=",".join(video_filenames) if video_filenames else ""
         )
 
         db.session.add(post)
@@ -141,11 +161,18 @@ def send_newsletter():
                 image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
                 if os.path.exists(image_path):
                     current_newsletter_total_size += os.path.getsize(image_path)
+        
+        if post.video_filenames:
+            for filename in post.video_filenames.split(','):
+                filename = filename.strip()
+                video_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                if os.path.exists(video_path):
+                    current_newsletter_total_size += os.path.getsize(video_path)
 
     print(f"DEBUG: Pre-send check - Current newsletter total size: {current_newsletter_total_size / (1024 * 1024):.2f} MB")
     print(f"DEBUG: Pre-send check - MAX_TOTAL_IMAGE_SIZE_MB: {MAX_TOTAL_IMAGE_SIZE_MB} MB")
     if current_newsletter_total_size > MAX_TOTAL_IMAGE_SIZE_BYTES:
-        flash(f'Total image size for this newsletter ({current_newsletter_total_size / (1024 * 1024):.2f} MB) exceeds the limit of {MAX_TOTAL_IMAGE_SIZE_MB}MB. Please reduce the number or size of images across your unsent posts.', 'danger')
+        flash(f'Total media size for this newsletter ({current_newsletter_total_size / (1024 * 1024):.2f} MB) exceeds the limit of {MAX_TOTAL_IMAGE_SIZE_MB}MB. Please reduce the number or size of media across your unsent posts.', 'danger')
         return redirect(url_for('main.newsletter_preview'))
 
     for i, post in enumerate(posts):
@@ -166,12 +193,17 @@ def send_newsletter():
                     html_body += f'<img src="cid:{cid[1:-1]}" style="max-width: 100%;"><br>'
                     attachments.append((cid[1:-1], image_path))
 
-    html_body += "<p><small>Sent via Postette</small></p>"
+        if post.video_filenames:
+            for filename in post.video_filenames.split(','):
+                filename = filename.strip()
+                video_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
 
-    # Debug: Calculate total attachment size before sending
-    # total_attachments_size = sum(os.path.getsize(filepath) for _, filepath in attachments)
-    # print(f"DEBUG: Total attachment size for newsletter: {total_attachments_size / (1024 * 1024):.2f} MB")
-    # print(f"DEBUG: Number of attachments: {len(attachments)}")
+                if os.path.exists(video_path):
+                    cid = make_msgid(domain="postette.local")
+                    html_body += f'<video src="cid:{cid[1:-1]}" style="max-width: 100%;" controls></video><br>'
+                    attachments.append((cid[1:-1], video_path))
+
+    html_body += "<p><small>Sent via Postette</small></p>"
 
     # Send email to all verified subscribers
     with mail.connect() as connection:
@@ -187,11 +219,12 @@ def send_newsletter():
             )
 
             for cid, path in attachments:
-                with open(path, 'rb') as img:
+                with open(path, 'rb') as media:
+                    content_type = "image/jpeg" if path.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')) else "video/mp4"
                     msg.attach(
                         filename=os.path.basename(path),
-                        content_type="image/jpeg",
-                        data=img.read(),
+                        content_type=content_type,
+                        data=media.read(),
                         headers=[('Content-ID', f'<{cid}>'), ('Content-Disposition', 'inline')]
                     )
 
@@ -333,38 +366,53 @@ def edit_post(post_id):
     post = Post.query.get_or_404(post_id)
     form = PostForm()
 
-    # Prepare existing image data for client-side JavaScript
+    # Prepare existing media data for client-side JavaScript
     existing_images_data = []
+    existing_videos_data = []
+    
     if post.image_filenames:
         for filename in post.image_filenames.split(','):
             if filename.strip():
                 image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename.strip())
                 if os.path.exists(image_path):
                     existing_images_data.append({'filename': filename.strip(), 'size': os.path.getsize(image_path)})
+    
+    if post.video_filenames:
+        for filename in post.video_filenames.split(','):
+            if filename.strip():
+                video_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename.strip())
+                if os.path.exists(video_path):
+                    existing_videos_data.append({'filename': filename.strip(), 'size': os.path.getsize(video_path)})
 
     if form.validate_on_submit():
         current_total_image_size = 0
+        current_total_video_size = 0
+        
         # Calculate size of existing images that are NOT being removed
-        # This logic needs to be careful because existing_images will only contain filenames from the hidden inputs
-        # So we need to compute their sizes based on what's still 'present'
-        remaining_existing_filenames = request.form.getlist('existing_images')
-        for filename in remaining_existing_filenames:
+        remaining_existing_image_filenames = request.form.getlist('existing_images')
+        for filename in remaining_existing_image_filenames:
             image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename.strip())
             if os.path.exists(image_path):
                 current_total_image_size += os.path.getsize(image_path)
 
-        # Handle image updates (new images)
+        # Calculate size of existing videos that are NOT being removed
+        remaining_existing_video_filenames = request.form.getlist('existing_videos')
+        for filename in remaining_existing_video_filenames:
+            video_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename.strip())
+            if os.path.exists(video_path):
+                current_total_video_size += os.path.getsize(video_path)
+
+        # Handle new images
         if form.images.data:
             new_image_filenames = []
             for image in form.images.data:
                 if isinstance(image, FileStorage) and image.filename:
                     current_total_image_size += len(image.read())
-                    image.seek(0) # Reset stream position after reading
+                    image.seek(0)
 
                     if current_total_image_size > MAX_TOTAL_IMAGE_SIZE_BYTES:
                         flash(f'Total image size exceeds the limit of {MAX_TOTAL_IMAGE_SIZE_MB}MB. Please reduce the number or size of images.', 'danger')
-                        # Pass existing images data back to template on error
-                        return render_template('edit_post.html', form=form, post=post, existing_images_data=existing_images_data)
+                        return render_template('edit_post.html', form=form, post=post, existing_images_data=existing_images_data, existing_videos_data=existing_videos_data)
 
                     filename = secure_filename(image.filename)
                     image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
@@ -372,17 +420,39 @@ def edit_post(post_id):
                     new_image_filenames.append(filename)
             
             if new_image_filenames:
-                # This part needs to be merged carefully with remaining_existing_filenames
-                post.image_filenames = ",".join(remaining_existing_filenames + new_image_filenames)
+                post.image_filenames = ",".join(remaining_existing_image_filenames + new_image_filenames)
             else:
-                post.image_filenames = ",".join(remaining_existing_filenames)
+                post.image_filenames = ",".join(remaining_existing_image_filenames)
+        elif post.image_filenames and not remaining_existing_image_filenames:
+            post.image_filenames = ""
+        elif post.image_filenames:
+            post.image_filenames = ",".join(remaining_existing_image_filenames)
 
-        # If no new images and old ones were removed, update post.image_filenames
-        elif post.image_filenames and not remaining_existing_filenames: # All existing images were removed
-             post.image_filenames = ""
-        elif post.image_filenames: # Only existing images, some might have been removed
-            post.image_filenames = ",".join(remaining_existing_filenames)
+        # Handle new videos
+        if form.videos.data:
+            new_video_filenames = []
+            for video in form.videos.data:
+                if isinstance(video, FileStorage) and video.filename:
+                    current_total_video_size += len(video.read())
+                    video.seek(0)
 
+                    if current_total_video_size > MAX_TOTAL_VIDEO_SIZE_BYTES:
+                        flash(f'Total video size exceeds the limit of {MAX_TOTAL_VIDEO_SIZE_MB}MB. Please reduce the number or size of videos.', 'danger')
+                        return render_template('edit_post.html', form=form, post=post, existing_images_data=existing_images_data, existing_videos_data=existing_videos_data)
+
+                    filename = secure_filename(video.filename)
+                    video_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                    video.save(video_path)
+                    new_video_filenames.append(filename)
+            
+            if new_video_filenames:
+                post.video_filenames = ",".join(remaining_existing_video_filenames + new_video_filenames)
+            else:
+                post.video_filenames = ",".join(remaining_existing_video_filenames)
+        elif post.video_filenames and not remaining_existing_video_filenames:
+            post.video_filenames = ""
+        elif post.video_filenames:
+            post.video_filenames = ",".join(remaining_existing_video_filenames)
 
         # Update post content
         post.title = form.title.data
@@ -397,8 +467,7 @@ def edit_post(post_id):
         form.title.data = post.title
         form.content.data = post.content
 
-    # Pass existing images data to the template for initial rendering
-    return render_template('edit_post.html', form=form, post=post, existing_images_data=existing_images_data)
+    return render_template('edit_post.html', form=form, post=post, existing_images_data=existing_images_data, existing_videos_data=existing_videos_data)
 
 @main.route('/remove-image/<int:post_id>/<filename>', methods=['POST'])
 @login_required
@@ -416,6 +485,26 @@ def remove_image(post_id, filename):
         if filename in image_list:
             image_list.remove(filename)
             post.image_filenames = ','.join(image_list)
+            db.session.commit()
+    
+    return jsonify(success=True) # Return JSON response for AJAX
+
+@main.route('/remove-video/<int:post_id>/<filename>', methods=['POST'])
+@login_required
+def remove_video(post_id, filename):
+    post = Post.query.get_or_404(post_id)
+    
+    # Remove video file
+    video_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(video_path):
+        os.remove(video_path)
+    
+    # Update post's video_filenames
+    if post.video_filenames:
+        video_list = post.video_filenames.split(',')
+        if filename in video_list:
+            video_list.remove(filename)
+            post.video_filenames = ','.join(video_list)
             db.session.commit()
     
     return jsonify(success=True) # Return JSON response for AJAX

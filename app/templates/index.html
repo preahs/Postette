@@ -83,6 +83,30 @@
         </div>
         {% endif %}
 
+        {% if post.video_filenames %}
+          {% set video_list = post.video_filenames.split(',') | select('ne', '') | list %}
+          {% set display_limit = 4 %}
+          {% set num_remaining = video_list|length - display_limit %}
+          <div class="post-videos {% if video_list|length == 1 %}single{% endif %}">
+          {% for filename in video_list %}
+            {% if loop.index0 < display_limit %}
+              <div class="post-video-container">
+                <video src="{{ url_for('static', filename='uploads/' ~ filename.strip()) }}" 
+                       class="post-video" 
+                       controls
+                       loading="lazy">
+                </video>
+              </div>
+            {% endif %}
+          {% endfor %}
+          {% if num_remaining > 0 %}
+            <div class="more-videos-overlay">
+              <p>+{{ num_remaining }} More Videos</p>
+            </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
         <!-- Delete Button -->
         <div class="post-actions">
           <a href="{{ url_for('main.edit_post', post_id=post.id) }}" class="btn btn-primary">Edit</a>

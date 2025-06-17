@@ -30,4 +30,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Handles removal of EXISTING videos
+    const removeExistingVideoButtons = document.querySelectorAll('.video-preview-item.existing-video-item .remove-video-preview[data-action="remove-existing"]');
+    
+    removeExistingVideoButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const videoPreviewItem = this.closest('.video-preview-item');
+            const filename = videoPreviewItem.dataset.filename;
+            const postId = window.location.pathname.split('/')[2];
+            
+            try {
+                const response = await fetch(`/remove-video/${postId}/${filename}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    videoPreviewItem.remove();
+                } else {
+                    console.error('Failed to remove video on server:', response.statusText);
+                    alert('Failed to remove video. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error removing video:', error);
+                alert('An error occurred while removing the video.');
+            }
+        });
+    });
 }); 

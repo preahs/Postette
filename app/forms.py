@@ -22,6 +22,9 @@ class PostForm(FlaskForm):
     images = MultipleFileField('Images', validators=[
         FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'bmp'], 'Images only!')
     ])
+    videos = MultipleFileField('Videos', validators=[
+        FileAllowed(['mp4', 'webm', 'mov'], 'Videos only!')
+    ])
     submit = SubmitField('Create Post')
 
 class SubscribeForm(FlaskForm):

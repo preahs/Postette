@@ -9,6 +9,7 @@ class Post(db.Model):
     title = db.Column(db.String(128), nullable=False)
     content = db.Column(db.Text, nullable=False)
     image_filenames = db.Column(db.Text)  # Comma-separated image filenames
+    video_filenames = db.Column(db.Text)  # Comma-separated video filenames
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     sent = db.Column(db.Boolean, default=False)  # Indicates if post has been included in a newsletter
     archived = db.Column(db.Boolean, default=False)  # Indicates if post has been archived
