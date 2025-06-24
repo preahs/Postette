@@ -1,63 +1,75 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Handles removal of EXISTING images
-    const removeExistingImageButtons = document.querySelectorAll('.image-preview-item.existing-image-item .remove-image-preview[data-action="remove-existing"]');
-    
-    removeExistingImageButtons.forEach(button => {
-        button.addEventListener('click', async function() {
-            const imagePreviewItem = this.closest('.image-preview-item');
-            const filename = imagePreviewItem.dataset.filename;
-            const postId = window.location.pathname.split('/')[2];
+    // Handle image removal
+    document.querySelectorAll('.remove-image-preview').forEach(button => {
+        button.addEventListener('click', function() {
+            const container = this.closest('.image-preview-item');
+            const filename = container.dataset.filename;
             
-            try {
-                const response = await fetch(`/remove-image/${postId}/${filename}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        // Add CSRF token if you have it in your forms
-                        // 'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
-                    }
-                });
-                
-                if (response.ok) {
-                    imagePreviewItem.remove(); // Remove the image element from the DOM
-                } else {
-                    console.error('Failed to remove image on server:', response.statusText);
-                    alert('Failed to remove image. Please try again.');
+            if (this.dataset.action === 'remove-existing') {
+                // Remove the hidden input for existing image
+                const input = container.querySelector('input[name="existing_images"]');
+                if (input) {
+                    input.remove();
                 }
-            } catch (error) {
-                console.error('Error removing image:', error);
-                alert('An error occurred while removing the image.');
             }
+            
+            container.remove();
         });
     });
 
-    // Handles removal of EXISTING videos
-    const removeExistingVideoButtons = document.querySelectorAll('.video-preview-item.existing-video-item .remove-video-preview[data-action="remove-existing"]');
-    
-    removeExistingVideoButtons.forEach(button => {
-        button.addEventListener('click', async function() {
-            const videoPreviewItem = this.closest('.video-preview-item');
-            const filename = videoPreviewItem.dataset.filename;
-            const postId = window.location.pathname.split('/')[2];
+    // Handle video removal
+    document.querySelectorAll('.remove-video-preview').forEach(button => {
+        button.addEventListener('click', function() {
+            const container = this.closest('.video-preview-item');
+            const filename = container.dataset.filename;
             
-            try {
-                const response = await fetch(`/remove-video/${postId}/${filename}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-                
-                if (response.ok) {
-                    videoPreviewItem.remove();
-                } else {
-                    console.error('Failed to remove video on server:', response.statusText);
-                    alert('Failed to remove video. Please try again.');
+            if (this.dataset.action === 'remove-existing') {
+                // Remove the hidden input for existing video
+                const input = container.querySelector('input[name="existing_videos"]');
+                if (input) {
+                    input.remove();
                 }
-            } catch (error) {
-                console.error('Error removing video:', error);
-                alert('An error occurred while removing the video.');
             }
+            
+            container.remove();
         });
+    });
+
+    // Lightbox modal for viewing all images in archived post or homepage
+    const modal = document.getElementById('imageLightboxModal');
+    const closeBtn = document.getElementById('closeLightbox');
+    const imagesContainer = document.getElementById('lightboxImagesContainer');
+
+    if (!modal || !closeBtn || !imagesContainer) return;
+
+    // Delegate event for dynamically created buttons
+    document.body.addEventListener('click', function(e) {
+        if (e.target.classList.contains('view-all-photos-btn')) {
+            const images = e.target.getAttribute('data-images').split(',');
+            imagesContainer.innerHTML = '';
+            images.forEach(filename => {
+                const img = document.createElement('img');
+                img.src = `/static/uploads/${filename.trim()}`;
+                img.alt = 'Post image';
+                img.style.maxWidth = '300px';
+                img.style.maxHeight = '300px';
+                img.style.margin = '8px';
+                imagesContainer.appendChild(img);
+            });
+            modal.style.display = 'flex';
+        }
+    });
+
+    closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+        imagesContainer.innerHTML = '';
+    });
+
+    // Close modal when clicking outside the image area
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            imagesContainer.innerHTML = '';
+        }
     });
 }); 

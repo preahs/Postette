@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const MAX_TOTAL_IMAGE_SIZE_MB = 15;
     const MAX_TOTAL_IMAGE_SIZE_BYTES = MAX_TOTAL_IMAGE_SIZE_MB * 1024 * 1024;
-    const MAX_TOTAL_VIDEO_SIZE_MB = 100;
+    const MAX_TOTAL_VIDEO_SIZE_MB = 15;
     const MAX_TOTAL_VIDEO_SIZE_BYTES = MAX_TOTAL_VIDEO_SIZE_MB * 1024 * 1024;
 
     let imageFilesToUpload = new DataTransfer();

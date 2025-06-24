@@ -79,8 +79,6 @@ def create_app():
     @app.before_request
     def redirect_to_setup():
         from .models import User
-        print(f"DEBUG: User.query.first() result: {User.query.first()}")
-        print(f"DEBUG: request.endpoint: {request.endpoint}")
         # Allow static files and auth.setup when no user exists
         allowed_no_user_routes = ['auth.setup', 'static']
         if not User.query.first() and request.endpoint not in allowed_no_user_routes:

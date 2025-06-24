@@ -3,6 +3,7 @@ from wtforms import StringField, TextAreaField, SubmitField, SelectMultipleField
 from wtforms.validators import DataRequired, Email, EqualTo
 from flask_wtf.file import MultipleFileField, FileAllowed
 from wtforms.widgets import ListWidget, CheckboxInput
+import os
 
 class MultiCheckboxField(SelectMultipleField):
     widget = ListWidget(prefix_label=False)
@@ -26,6 +27,48 @@ class PostForm(FlaskForm):
         FileAllowed(['mp4', 'webm', 'mov'], 'Videos only!')
     ])
     submit = SubmitField('Create Post')
+
+    def validate(self, extra_validators=None):
+        # Custom validation for media size and type
+        if not super().validate(extra_validators):
+            return False
+
+        # Check total size of all media (images + videos)
+        total_size = 0
+        MAX_TOTAL_SIZE = 15 * 1024 * 1024  # 15MB in bytes
+
+        # Check images
+        if self.images.data:
+            for image in self.images.data:
+                if image:
+                    try:
+                        image.seek(0, os.SEEK_END)
+                        size = image.tell()
+                        total_size += size
+                        image.seek(0)
+                    except Exception as e:
+                        self.images.errors.append(f"Error processing image: {str(e)}")
+                        return False
+
+        # Check videos
+        if self.videos.data:
+            for video in self.videos.data:
+                if video:
+                    try:
+                        video.seek(0, os.SEEK_END)
+                        size = video.tell()
+                        total_size += size
+                        video.seek(0)
+                    except Exception as e:
+                        self.videos.errors.append(f"Error processing video: {str(e)}")
+                        return False
+
+        if total_size > MAX_TOTAL_SIZE:
+            error_msg = f'Total size of all media (images and videos) must be less than 15MB. Current size: {total_size / (1024 * 1024):.2f}MB'
+            self.images.errors.append(error_msg)
+            return False
+
+        return True
 
 class SubscribeForm(FlaskForm):
     email = StringField('Your Email', validators=[DataRequired(), Email()])
