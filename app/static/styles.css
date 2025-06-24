@@ -758,6 +758,10 @@ h1, h2, h3, h4, h5, h6 {
     border-color: var(--primary-color);
 }
 
+.drop-zone:hover {
+    border-color: #1a58d3;
+}
+
 .drop-zone p {
     margin: 0;
     color: var(--text-light);

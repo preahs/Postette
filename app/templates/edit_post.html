@@ -22,6 +22,7 @@
         <p>Drag and drop images here, or click to browse</p>
         <input type="file" id="image-file-input" name="images" multiple accept="image/*" style="display: none;">
       </div>
+      <div class="form-text">Supported formats: JPG, JPEG, PNG, GIF, BMP</div>
       <div id="image-preview-container" class="image-preview-container mt-3">
         {% if existing_images_data %}
           {% for image_data in existing_images_data %}
@@ -41,6 +42,7 @@
         <p>Drag and drop videos here, or click to browse</p>
         <input type="file" id="video-file-input" name="videos" multiple accept="video/*" style="display: none;">
       </div>
+      <div class="form-text">Supported formats: MP4, WEBM, MOV</div>
       <div id="video-preview-container" class="video-preview-container mt-3">
         {% if existing_videos_data %}
           {% for video_data in existing_videos_data %}
