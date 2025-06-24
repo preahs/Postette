@@ -2,18 +2,30 @@
 
 A self-hostable newsletter service for sending personalized updates to friends and family. Postette provides a simple, accessible interface for managing your newsletter subscriptions and sending emails to anyone.
 
+I originally made this as a personal alternative to traditional social media such as Facebook and Instagram. The main use-case for this service is to send emails to family and friends, not necessarily a huge audience, and allow them to see what you're up to. Due to size limitations for emails, I recommend adding a link to a public iCloud shared album or similar service if you want to share more than 15MB worth of photos and videos.
+
+Here is how the workflow can generally go:
+
+- Setup with your user upon first launch. Includes verifying your account with an email, which is necessary to be able to reset your password later if needed.
+- Generate an invite link and send to whoever you want to subscribe.
+- Create posts. Write content for the body, and attach multiple images and/or videos as long as the combined total is under 15MB.
+- Edit posts if needed from the dashboard. Before sending, each post is flagged as Unsent.
+- Preview your newsletter and current subscribers to ensure that it looks how you want it and goes to people you want. Posts will show in chronological order from when you created them.
+- You can remove subscribers from this page if you want, but they will have to re-subscribe in the future if you want them to receive your posts again.
+- Send it!
+- Now the posts on the dashboard should be flagged as Sent. From here you can archive them all, and keep a timeline of your posts in the archive indefinitely. You can also delete them all if you prefer to keep the archive empty and not store a lot of posts.
+- If needed, you can restore a post and mark it unsent so that you can edit it and send again.
+
 > [!WARNING]
 This project is currently in active development and should be considered unstable. Features may change and bugs may exist. Use at your own risk.
 
 ## Features
 
-- Beautiful, responsive web interface
-- Email subscription management
-- Newsletter archive
-- User authentication and email verification
-- Invite system for subscribers
-- Media attachments (images and videos) in posts
-- Admin setup and management
+- Create multiple posts with media attachments (images and videos)
+- Invite system for subscribers using a generated link with an expiration
+- Remove subscribers if needed and view all emails that are subscribed
+- Archive for sent newsletters and ability to restore sent posts to resend if needed
+- User authentication and initial setup page when first launched
 - Secure password reset and email verification flows
 
 ---
@@ -74,11 +86,12 @@ This project is currently in active development and should be considered unstabl
 
 ## Usage
 
-- On first launch, you will be prompted to create an admin user.
+- On first launch, you will be prompted to create your user.
 - After setup, log in to access the dashboard, create posts, manage subscribers, and send newsletters.
-- Subscribers can sign up via invite links and must verify their email before receiving newsletters.
+- Subscribers can sign up via invite links and must verify their email before receiving newsletters (verification is to prevent abuse).
 - Posts can include images and videos (with size limits enforced).
 - Sent and archived posts can be managed and deleted from the dashboard.
+- Preview the full newsletter with each post before sending it off.
 
 ---
 
