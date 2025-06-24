@@ -84,6 +84,51 @@ This project is currently in active development and should be considered unstabl
 
 ---
 
+## Running with Docker
+
+You can run Postette as a self-hostable service using Docker and docker-compose. This is the recommended way for general use.
+
+### 1. Build and Start the Service
+
+```bash
+docker-compose up --build
+```
+
+This will build the Docker image and start the service. Postette will be available at [http://localhost:8000](http://localhost:8000).
+
+### 2. Environment Variables
+
+Create a `.env` file in the project root (or set variables in your deployment environment) with at least:
+
+```
+SECRET_KEY=your-secret-key
+MAIL_SERVER=your-smtp-server
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME=your-email
+MAIL_PASSWORD=your-password
+MAIL_DEFAULT_SENDER=your-email
+SQLALCHEMY_DATABASE_URI=sqlite:///instance/newsletter.db
+```
+
+You can also set these in the `docker-compose.yml` under `environment:`.
+
+### 3. Persistent Data
+
+- The `instance/` directory (database, config) and `app/static/uploads/` (user uploads) are mounted as volumes, so your data persists across container restarts.
+
+### 4. Access Remotely
+
+- The service listens on port 8000. To access remotely, ensure your server's firewall allows traffic on this port, or change the `ports:` mapping in `docker-compose.yml` as needed.
+
+### 5. Stopping the Service
+
+```bash
+docker-compose down
+```
+
+---
+
 ## Usage
 
 - On first launch, you will be prompted to create your user.
