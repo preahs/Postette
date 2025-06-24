@@ -1,14 +1,22 @@
 version: '3.8'
 services:
-  web:
+  postette:
+    container_name: postette
     build: .
-    container_name: postette_app
+    restart: unless-stopped
     ports:
-      - "8000:8000"
+      - ${POSTETTE_PORT:-8000}:8000
     volumes:
-      - ./instance:/app/instance
-      - ./app/static/uploads:/app/app/static/uploads
+      - ${POSTETTE_INSTANCE_PATH:-./instance}:/app/instance
+      - ${POSTETTE_UPLOADS_PATH:-./app/static/uploads}:/app/app/static/uploads
     environment:
-      - FLASK_ENV=production
-      - FLASK_APP=app
-    restart: unless-stopped 
+      FLASK_ENV: ${POSTETTE_FLASK_ENV:-production}
+      FLASK_APP: ${POSTETTE_FLASK_APP:-app}
+      SECRET_KEY: ${POSTETTE_SECRET_KEY:-changeme}
+      MAIL_SERVER: ${POSTETTE_MAIL_SERVER:-smtp.example.com}
+      MAIL_PORT: ${POSTETTE_MAIL_PORT:-587}
+      MAIL_USE_TLS: ${POSTETTE_MAIL_USE_TLS:-True}
+      MAIL_USERNAME: ${POSTETTE_MAIL_USERNAME:-user@example.com}
+      MAIL_PASSWORD: ${POSTETTE_MAIL_PASSWORD:-password}
+      MAIL_DEFAULT_SENDER: ${POSTETTE_MAIL_DEFAULT_SENDER:-user@example.com}
+      SQLALCHEMY_DATABASE_URI: ${POSTETTE_SQLALCHEMY_DATABASE_URI:-sqlite:///instance/newsletter.db} 
